@@ -1,11 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"password-caddy/util"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -49,7 +50,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 
 	body.Message = fmt.Sprintf("Hello, %v", string(ip))
 
-	responseBody, err := json.Marshal(body)
+	responseBody := util.ToJsonString(body)
 
 	return events.APIGatewayProxyResponse{
 		Body:       string(responseBody),

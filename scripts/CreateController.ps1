@@ -28,7 +28,7 @@ type Response struct {
 	Message string `json:"message"`
 }
 
-func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var body Response
 
 	body.Message = "Hello world!"
@@ -42,7 +42,7 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 }
 
 func main() {
-	lambda.Start(handler)
+	lambda.Start(Handler)
 }'
 
 Write-Host "Checking if directory src/$($ControllerName) exists..."
@@ -64,7 +64,7 @@ Set-Content -Path "$($Path)\main.go" -Value $ControllerTemplate | Out-Null
 
 Write-Host "Info: Initializing module..."
 Set-Location -Path $Path
-go mod init $ControllerName
+go mod init "password-caddy/$($ControllerName)"
 go mod tidy
 go get github.com/aws/aws-lambda-go
 go install

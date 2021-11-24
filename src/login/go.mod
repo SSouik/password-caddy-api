@@ -1,4 +1,4 @@
-module login
+module password-caddy/login
 
 go 1.17
 
