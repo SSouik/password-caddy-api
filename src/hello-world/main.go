@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -21,6 +22,10 @@ var (
 	ErrNon200Response = errors.New("Non 200 Response found")
 )
 
+type Response struct {
+	Message string `json:"message"`
+}
+
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	resp, err := http.Get(DefaultHTTPGetAddress)
 	if err != nil {
@@ -40,8 +45,14 @@ func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return events.APIGatewayProxyResponse{}, ErrNoIP
 	}
 
+	var body Response
+
+	body.Message = fmt.Sprintf("Hello, %v", string(ip))
+
+	responseBody, err := json.Marshal(body)
+
 	return events.APIGatewayProxyResponse{
-		Body:       fmt.Sprintf("Hello, %v", string(ip)),
+		Body:       string(responseBody),
 		StatusCode: 200,
 	}, nil
 }
