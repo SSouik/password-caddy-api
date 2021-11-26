@@ -3,16 +3,17 @@
 # Example: ./scripts/CreateController.ps1 foo
 # The above example will create a directory named "foo" at src/foo
 # and bootstrap a go module called "foo" that is set up to run as
-# and AWS Lambda function
+# an AWS Lambda function
 
 $ControllerName = $args[0]
 
-if ($ControllerName -eq $null)
+if ($null -eq $ControllerName)
 {
     $ControllerName = "controller"
 }
 
-$Path = "$($(Get-Location).Path)\src\$($ControllerName)";
+$Dir = (Get-Location).Path
+$Path = "$($Dir)\src\controllers\$($ControllerName)";
 
 $ControllerTemplate = 
 'package main
@@ -45,29 +46,33 @@ func main() {
 	lambda.Start(Handler)
 }'
 
-Write-Host "Checking if directory src/$($ControllerName) exists..."
+Write-Host "Checking if directory src/controllers/$($ControllerName) exists..."
 
 if (Test-Path -Path "$($Path)")
 {
-    Write-Host "Error: src/$($ControllerName) already exists"
+    Write-Host "Error: src/controllers/$($ControllerName) already exists"
     exit(1)
 }
 
-Write-Host "Info: Creating directory src/$($ControllerName) ..."
+Write-Host "Info: Creating directory src/controllers/$($ControllerName) ..."
 
 New-Item -Path "$($Path)" -ItemType Directory | Out-Null
 
-Write-Host "Info: Creating file src/$($ControllerName)/main.go ..."
+Write-Host "Info: Creating file src/controllers/$($ControllerName)/main.go ..."
 
 New-Item -Path "$($Path)\main.go" -ItemType File | Out-Null
 Set-Content -Path "$($Path)\main.go" -Value $ControllerTemplate | Out-Null
 
 Write-Host "Info: Initializing module..."
 Set-Location -Path $Path
+
+# Set up go module with defaults
 go mod init "password-caddy/$($ControllerName)"
 go mod tidy
 go get github.com/aws/aws-lambda-go
 go install
+
+Set-Location -Path $Dir
 
 Write-Host "----------"
 Write-Host "Controller created. Make sure to add the controller to template.yml"
