@@ -14,17 +14,13 @@ type LoginResponse struct {
 
 func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var responseBody LoginResponse
-
-	resp := response.Create()
-
 	responseBody.Token = "some_token"
-
 	responseJson := util.SerializeJson(responseBody)
 
-	response.WithStatus(200, &resp)
-	response.WithBody(responseJson, &resp)
-
-	return response.ToAPIGatewayResponse(resp), nil
+	return response.Create().
+		WithStatus(200).
+		WithBody(responseJson).
+		ToAPIGatewayResponse()
 }
 
 func main() {

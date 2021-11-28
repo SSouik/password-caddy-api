@@ -9,19 +9,21 @@ type Response struct {
 	Body       string
 }
 
-func Create() Response {
-	return Response{}
+func Create() *Response {
+	return &Response{}
 }
 
-func WithStatus(status int, response *Response) {
+func (response *Response) WithStatus(status int) *Response {
 	response.StatusCode = status
+	return response
 }
 
-func WithBody(body string, response *Response) {
+func (response *Response) WithBody(body string) *Response {
 	response.Body = body
+	return response
 }
 
-func ToAPIGatewayResponse(response Response) events.APIGatewayProxyResponse {
+func (response *Response) ToAPIGatewayResponse() (events.APIGatewayProxyResponse, error) {
 	defaultHeaders := map[string]string{
 		"Accept":       "application/json",
 		"Content-Type": "application/json",
@@ -31,5 +33,5 @@ func ToAPIGatewayResponse(response Response) events.APIGatewayProxyResponse {
 		StatusCode: response.StatusCode,
 		Headers:    defaultHeaders,
 		Body:       response.Body,
-	}
+	}, nil
 }
