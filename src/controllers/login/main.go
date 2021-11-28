@@ -1,29 +1,32 @@
 package main
 
 import (
-	"encoding/json"
+	"password-caddy/response"
+	"password-caddy/util"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-type Response struct {
+type LoginResponse struct {
 	Token string `json:"token"`
 }
 
-func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var body Response
+func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var responseBody LoginResponse
 
-	body.Token = "some_token"
+	resp := response.Create()
 
-	responseBody, _ := json.Marshal(body)
+	responseBody.Token = "some_token"
 
-	return events.APIGatewayProxyResponse{
-		Body:       string(responseBody),
-		StatusCode: 200,
-	}, nil
+	responseJson := util.SerializeJson(responseBody)
+
+	response.WithStatus(200, &resp)
+	response.WithBody(responseJson, &resp)
+
+	return response.ToAPIGatewayResponse(resp), nil
 }
 
 func main() {
-	lambda.Start(handler)
+	lambda.Start(Handler)
 }
