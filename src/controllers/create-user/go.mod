@@ -20,4 +20,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.10.1 // indirect
 	github.com/aws/smithy-go v1.9.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	password-caddy/util v1.0.0
 )
+
+replace password-caddy/util => ../../lib/util

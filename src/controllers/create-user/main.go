@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
+	"password-caddy/util"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -25,10 +27,10 @@ func Handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 
 	var request Request
 
-	someerr := json.Unmarshal([]byte(event.Body), &request)
+	jsonErr := util.DeserializeJson(event.Body, &request)
 
-	if someerr != nil {
-		body.Message = someerr.Error()
+	if jsonErr != nil {
+		body.Message = jsonErr.Error()
 		res, _ := json.Marshal(body)
 
 		return events.APIGatewayProxyResponse{
@@ -73,7 +75,7 @@ func Handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 		}, nil
 	}
 
-	responseBody, _ := json.Marshal(response)
+	responseBody := util.SerializeJson(response)
 
 	return events.APIGatewayProxyResponse{
 		Body:       string(responseBody),
