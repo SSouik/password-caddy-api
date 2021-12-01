@@ -10,15 +10,17 @@ env:
   PIPELINE_USER_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   SAM_TEMPLATE: template.yml
   REGION: us-east-2
+  SAM_VERSION: 1.35.0
 
-jobs:
+jobs:      
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
       - uses: aws-actions/setup-sam@v1
-
+        with:
+          version: ${{ env.SAM_VERSION }}
       - name: Assume the testing pipeline user role
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -45,6 +47,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
       - uses: aws-actions/setup-sam@v1
+        with:
+          version: ${{ env.SAM_VERSION }}
 
       - name: Build resources
         run: sam build --template ${{ env.SAM_TEMPLATE }}
