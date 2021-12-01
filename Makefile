@@ -22,7 +22,7 @@ start: build
 
 package: build
 	sam package \
-		--s3-bucket password-caddy-cloudformation-artifacts \
+		--s3-bucket password-caddy-cloudformation-artifacts-dev \
 		--region us-east-2 \
 		--output-template-file packaged-dev.yml
 
@@ -34,7 +34,7 @@ deploy: package
 		--template packaged-dev.yml \
 		--capabilities CAPABILITY_IAM \
 		--region us-east-2 \
-		--s3-bucket password-caddy-cloudformation-artifacts \
+		--s3-bucket password-caddy-cloudformation-artifacts-dev \
 		--no-fail-on-empty-changeset \
 		--role-arn arn:aws:iam::480277082058:role/password-caddy-cloudformation-execution-role \
 		--parameter-overrides 'ENV=dev ACCOUNTID=480277082058'
