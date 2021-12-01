@@ -1,8 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Password Caddy Api
-  
   AWS SAM Template for creating the API resources (API Gateway & Lambda Functions)
   for the Password Caddy Api
 
@@ -31,7 +29,7 @@ Resources:
   CreateUserFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "password-caddy-api-${ENV}-CreateUser"
+      FunctionName: !Sub "password-caddy-api-${ENV}-v1-CreateUser"
       Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/dynamodb"
       CodeUri: src/controllers/create-user/
       Handler: main
@@ -49,7 +47,7 @@ Resources:
   LoginFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "password-caddy-api-${ENV}-Login"
+      FunctionName: !Sub "password-caddy-api-${ENV}-v1-Login"
       Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/cognito"
       CodeUri: src/controllers/login/
       Handler: main

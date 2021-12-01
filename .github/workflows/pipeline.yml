@@ -6,6 +6,7 @@ on:
       - 'main'
 
 env:
+  VERSION: v1 # Current Version of the Api
   PIPELINE_USER_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   PIPELINE_USER_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   SAM_TEMPLATE: template.yml
@@ -14,10 +15,10 @@ env:
   CLOUDFORMATION_EXECUTION_ROLE: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/password-caddy-cloudformation-execution-role
   
   DEV_ARTIFACTS_BUCKET: password-caddy-cloudformation-artifacts-dev
-  DEV_STACK_NAME: password-caddy-api-dev
+  DEV_STACK_NAME: password-caddy-api-dev-${{ env.VERSION }}
 
   PROD_ARTIFACTS_BUCKET: password-caddy-cloudformation-artifacts-prod
-  PROD_STACK_NAME: password-caddy-api-prod
+  PROD_STACK_NAME: password-caddy-api-prod-${{ env.VERSION }}
 
 jobs:
   validate:
@@ -72,6 +73,7 @@ jobs:
         run: |
           sam package \
             --s3-bucket ${{ env.DEV_ARTIFACTS_BUCKET }} \
+            --s3-prefix ${{ env.VERSION }} \
             --region ${{ env.REGION }} \
             --output-template-file packaged-dev.yml
 
@@ -109,6 +111,7 @@ jobs:
             --capabilities CAPABILITY_IAM \
             --region ${{ env.REGION }} \
             --s3-bucket ${{ env.DEV_ARTIFACTS_BUCKET }} \
+            --s3-prefix ${{ env.VERSION }} \
             --no-fail-on-empty-changeset \
             --role-arn ${{ env.CLOUDFORMATION_EXECUTION_ROLE }} \
             --parameter-overrides 'ENV=dev ACCOUNTID=${{ secrets.AWS_ACCOUNT_ID }}'
