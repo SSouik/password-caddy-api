@@ -15,10 +15,10 @@ env:
   CLOUDFORMATION_EXECUTION_ROLE: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/password-caddy-cloudformation-execution-role
   
   DEV_ARTIFACTS_BUCKET: password-caddy-cloudformation-artifacts-dev
-  DEV_STACK_NAME: password-caddy-api-dev-${{ env.VERSION }}
+  DEV_STACK_NAME: password-caddy-api-dev
 
   PROD_ARTIFACTS_BUCKET: password-caddy-cloudformation-artifacts-prod
-  PROD_STACK_NAME: password-caddy-api-prod-${{ env.VERSION }}
+  PROD_STACK_NAME: password-caddy-api-prod
 
 jobs:
   validate:
@@ -106,7 +106,7 @@ jobs:
 
       - name: Deploy to dev account
         run: |
-          sam deploy --stack-name ${DEV_STACK_NAME} \
+          sam deploy --stack-name ${{ env.DEV_STACK_NAME }}-${{ env.VERSION }} \
             --template packaged-dev.yml \
             --capabilities CAPABILITY_IAM \
             --region ${{ env.REGION }} \
@@ -153,7 +153,7 @@ jobs:
 
   #     - name: Deploy to production account
   #       run: |
-  #         sam deploy --stack-name ${PROD_STACK_NAME} \
+  #         sam deploy --stack-name ${{ env.PROD_STACK_NAME }}-${{ env.VERSION }} \
   #           --template packaged-prod.yml \
   #           --capabilities CAPABILITY_IAM \
   #           --region ${{ env.REGION }} \
