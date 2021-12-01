@@ -21,6 +21,8 @@ $ControllerTemplate =
 import (
 	"encoding/json"
 
+	"password-caddy/result"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -29,17 +31,17 @@ type Response struct {
 	Message string `json:"message"`
 }
 
+func SayHello() *result.Result {
+	var response Response
+	response.Message = "Hello from Password Caddy Api!"
+
+	return result.SuccessWithValue(response)
+}
+
 func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var body Response
-
-	body.Message = "Hello world!"
-
-	responseBody, _ := json.Marshal(body)
-
-	return events.APIGatewayProxyResponse{
-		Body:       string(responseBody),
-		StatusCode: 200,
-	}, nil
+	return result.Create().
+		ThenApply(SayHello).
+		ToAPIGatewayResponse()
 }
 
 func main() {
@@ -71,6 +73,10 @@ go mod init "password-caddy/$($ControllerName)"
 go mod tidy
 go get github.com/aws/aws-lambda-go
 go install
+
+Add-Content -Path "$($Path)\go.mod" -Value "require password-caddy/result v1.0.0" | Out-Null
+Add-Content -Path "$($Path)\go.mod" -Value "" | Out-Null
+Add-Content -Path "$($Path)\go.mod" -Value "replace password-caddy/result => ../../lib/result" | Out-Null
 
 Set-Location -Path $Dir
 
