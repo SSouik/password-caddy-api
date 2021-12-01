@@ -7,13 +7,17 @@ Description: >
   for the Password Caddy Api
 
 Parameters:
-  Env:
+  ENV:
     Type: String
     Default: dev
     AllowedValues:
       - dev
       - prod
     Description: Environment of the Stack. Either dev or prod
+  ACCOUNTID:
+    Type: String
+    Default: ""
+    Description: AWS Account ID
 
 Globals:
   Function:
@@ -27,7 +31,8 @@ Resources:
   CreateUserFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "password-caddy-api-${Env}-CreateUser"
+      FunctionName: !Sub "password-caddy-api-${ENV}-CreateUser"
+      Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/dynamodb"
       CodeUri: src/controllers/create-user/
       Handler: main
       Runtime: go1.x
@@ -44,7 +49,8 @@ Resources:
   LoginFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "password-caddy-api-${Env}-Login"
+      FunctionName: !Sub "password-caddy-api-${ENV}-Login"
+      Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/cognito"
       CodeUri: src/controllers/login/
       Handler: main
       Runtime: go1.x
@@ -64,8 +70,6 @@ Outputs:
   PasswordCaddyApi:
     Description: "HTTP API Gateway URL for Password Caddy Api"
     Value: !Sub "https://${PasswordCaddyApi}.execute-api.${AWS::Region}.amazonaws.com/"
-    Export:
-      Name: !Sub "PasswordCaddyApi-${Env}"
   
   # Endpoints
   LoginEndpoint:
@@ -74,19 +78,3 @@ Outputs:
   CreateUserEndpoint:
     Description: "Endpoint for Login Lambda"
     Value: !Sub "https://${PasswordCaddyApi}.execute-api.${AWS::Region}.amazonaws.com/v1/user"
-  
-  # Lambda Functions
-  LoginFunctionArn:
-    Description: "Create User Function Arn"
-    Value: !GetAtt LoginFunction.Arn
-  CreateUserFunctionArn:
-    Description: "Create User Function Arn"
-    Value: !GetAtt CreateUserFunction.Arn
-  
-  # IAM
-  CreateUserFunctionIamRole:
-    Description: "IAM Role for Password Caddy API Login Function"
-    Value: !GetAtt LoginFunctionRole.Arn
-  CreateUserFunctionIamRole:
-    Description: "IAM Role for Password Caddy API Create User Function"
-    Value: !GetAtt CreateUserFunctionRole.Arn

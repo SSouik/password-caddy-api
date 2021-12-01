@@ -29,14 +29,15 @@ package: build
 .PHONY: deploy
 
 deploy: package
-	sam deploy --stack-name password-caddy-api-dev \
+	sam deploy \
+		--stack-name password-caddy-api-dev \
 		--template packaged-dev.yml \
 		--capabilities CAPABILITY_IAM \
 		--region us-east-2 \
 		--s3-bucket password-caddy-cloudformation-artifacts \
 		--no-fail-on-empty-changeset \
 		--role-arn arn:aws:iam::480277082058:role/password-caddy-cloudformation-execution-role \
-		--parameter-overrides "ParameterKey=Env,ParameterValue=dev"
+		--parameter-overrides 'ENV=dev ACCOUNTID=480277082058'
 
 .PHONY: delete
 
