@@ -15,10 +15,10 @@ env:
   CLOUDFORMATION_EXECUTION_ROLE: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/password-caddy-cloudformation-execution-role
   
   DEV_ARTIFACTS_BUCKET: password-caddy-cloudformation-artifacts-dev
-  DEV_STACK_NAME: password-caddy-api-dev-${{ env.VERSION }}
+  DEV_STACK_NAME: password-caddy-api-dev
 
   PROD_ARTIFACTS_BUCKET: password-caddy-cloudformation-artifacts-prod
-  PROD_STACK_NAME: password-caddy-api-prod-${{ env.VERSION }}
+  PROD_STACK_NAME: password-caddy-api-prod
 
 jobs:
   validate:
