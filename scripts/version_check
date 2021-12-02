@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+if [[ $# -eq 0 ]]; then
+    echo "Please provide a github access token"
+    exit 1;
+fi
+
+github_token=$1
+current_version_json="https://${github_token}@github.com/SSouik/password-caddy-api/main/version.json"
+
+current_version=$(curl -s ${current_version_json} | grep '"version":' version.json | cut -d\" -f4)

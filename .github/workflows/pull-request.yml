@@ -12,7 +12,15 @@ env:
   REGION: us-east-2
   SAM_VERSION: 1.35.0
 
-jobs:      
+jobs:
+  # version-check:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Check Version
+  #       run: |
+
+  #         $version=$(grep '"version":' version.json | cut -d\" -f4)
   validate:
     runs-on: ubuntu-latest
     steps:
