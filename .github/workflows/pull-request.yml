@@ -13,14 +13,14 @@ env:
   SAM_VERSION: 1.35.0
 
 jobs:
-  # version-check:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - name: Check Version
-  #       run: |
-
-  #         $version=$(grep '"version":' version.json | cut -d\" -f4)
+  version-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check Version
+        run: |
+          scripts/version_check ${{ secrets.RAW_GITHUB_TOKEN }}
+  
   validate:
     runs-on: ubuntu-latest
     steps:

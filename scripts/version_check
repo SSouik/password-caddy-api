@@ -6,6 +6,14 @@ if [[ $# -eq 0 ]]; then
 fi
 
 github_token=$1
-current_version_json="https://${github_token}@github.com/SSouik/password-caddy-api/main/version.json"
+upstream_version_json="https://raw.githubusercontent.com/SSouik/password-caddy-api/main/version.json?token=${github_token}"
 
-current_version=$(curl -s ${current_version_json} | grep '"version":' version.json | cut -d\" -f4)
+upstream_version=$(curl -s ${upstream_version_json} | grep '"version":' | cut -d\" -f4 | sed 's/[".]//g')
+current_version=$(grep '"version":' version.json | cut -d\" -f4 | sed 's/[".]//g')
+
+if [[ $upstream_version -ge $current_version ]]; then
+    echo "Version number is invalid"
+    exit 1;
+fi
+
+echo "Version checks out!"
