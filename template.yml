@@ -16,10 +16,15 @@ Parameters:
     Type: String
     Default: ""
     Description: AWS Account ID
+  
 
 Globals:
   Function:
     Timeout: 30
+    Environment:
+      Variables:
+        TEST_TOKEN:
+        EXPIRATION:
 
 Resources:
   PasswordCaddyApi:
@@ -48,7 +53,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "password-caddy-api-${ENV}-v1-Login"
-      Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/cognito"
+      # Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/cognito"
       CodeUri: src/controllers/login/
       Handler: main
       Runtime: go1.x

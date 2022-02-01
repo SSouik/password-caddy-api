@@ -16,7 +16,7 @@ build: validate
 .PHONY: start
 
 start: build
-	sam local start-api
+	sam local start-api --env-vars env.json
 
 .PHONY: package
 
@@ -48,3 +48,8 @@ delete:
 		--stack-name password-caddy-api-dev \
 		--no-prompts \
 		--region us-east-2
+
+.PHONY: login
+
+invoke-login: build
+	sam local invoke LoginFunction --env-vars env.json

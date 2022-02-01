@@ -1,3 +1,6 @@
 .aws-sam
 *.toml
 packaged*
+
+# Env file
+env.json
