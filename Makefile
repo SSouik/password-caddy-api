@@ -65,3 +65,14 @@ delete:
 
 invoke-login: build-local
 	sam local invoke LoginFunction --env-vars env.json
+
+test:
+	go test -v password-caddy/util
+
+coverage:
+	go test \
+		-cover \
+		-coverprofile=coverage.out \
+		password-caddy/util
+
+	go tool cover -html=coverage.out
