@@ -10,28 +10,20 @@ Parameters:
     Default: dev
     AllowedValues:
       - dev
-      - prod
-    Description: Environment of the Stack. Either dev or prod
+    Description: Environment of the Stack. Must be dev
   ACCOUNTID:
     Type: String
     Default: ""
     Description: AWS Account ID
-  TESTTOKEN:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /password-caddy-api/${API_ENV}/v1/TEST_TOKEN
-    Description: Test Token
-  TESTEXPIRATION:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /password-caddy-api/${API_ENV}/v1/TEST_TOKEN
-    Description: Test Expiration
+  
 
 Globals:
   Function:
     Timeout: 30
     Environment:
       Variables:
-        TEST_TOKEN: !Ref TESTTOKEN
-        EXPIRATION: !Ref TESTEXPIRATION
+        TEST_TOKEN:
+        EXPIRATION:
 
 Resources:
   PasswordCaddyApi:
@@ -41,7 +33,7 @@ Resources:
   CreateUserFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "password-caddy-api-${ENV}-v1-CreateUser"
+      FunctionName: CreateUserFunction
       Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/dynamodb"
       CodeUri: src/controllers/create-user/
       Handler: main
@@ -59,7 +51,7 @@ Resources:
   LoginFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "password-caddy-api-${ENV}-v1-Login"
+      FunctionName: LoginFunction
       # Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/cognito"
       CodeUri: src/controllers/login/
       Handler: main
@@ -74,17 +66,3 @@ Resources:
             Path: /v1/login
             Method: GET
             ApiId: !Ref PasswordCaddyApi
-
-Outputs:
-  # Api
-  PasswordCaddyApi:
-    Description: "HTTP API Gateway URL for Password Caddy Api"
-    Value: !Sub "https://${PasswordCaddyApi}.execute-api.${AWS::Region}.amazonaws.com/"
-  
-  # Endpoints
-  LoginEndpoint:
-    Description: "Endpoint for Login Lambda"
-    Value: !Sub "https://${PasswordCaddyApi}.execute-api.${AWS::Region}.amazonaws.com/v1/login"
-  CreateUserEndpoint:
-    Description: "Endpoint for Login Lambda"
-    Value: !Sub "https://${PasswordCaddyApi}.execute-api.${AWS::Region}.amazonaws.com/v1/user"

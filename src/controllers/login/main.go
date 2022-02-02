@@ -1,6 +1,7 @@
 package main
 
 import (
+	"password-caddy/config"
 	"password-caddy/result"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -8,12 +9,14 @@ import (
 )
 
 type LoginResponse struct {
-	Token string `json:"token"`
+	Token      string `json:"token"`
+	Expiration int64  `json:"exp"`
 }
 
 func GetToken() *result.Result {
 	var response LoginResponse
-	response.Token = "some_token"
+	response.Token = config.Get("TEST_TOKEN", "default_token").ToString()
+	response.Expiration = config.Get("EXPIRATION", "1000").ToInt64()
 
 	return result.SuccessWithValue(response)
 }
