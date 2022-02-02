@@ -3,6 +3,16 @@
 controller:
 	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe .\scripts\CreateController.ps1
 
+.PHONY: validate-local
+
+validate-local:
+	sam validate --template template.local.yml
+
+.PHONY: build-local
+
+build-local: validate-local
+	sam build --template template.local.yml
+
 .PHONY: validate
 
 validate:
@@ -15,7 +25,7 @@ build: validate
 
 .PHONY: start
 
-start: build
+start: build-local
 	sam local start-api --env-vars env.json
 
 .PHONY: package
@@ -26,6 +36,8 @@ package: build
 		--s3-prefix v1 \
 		--region us-east-2 \
 		--output-template-file packaged-dev.yml
+
+	C:\"Program Files"\Git\usr\bin\bash.exe ./scripts/set_env.sh
 
 .PHONY: deploy
 
@@ -51,5 +63,5 @@ delete:
 
 .PHONY: login
 
-invoke-login: build
+invoke-login: build-local
 	sam local invoke LoginFunction --env-vars env.json

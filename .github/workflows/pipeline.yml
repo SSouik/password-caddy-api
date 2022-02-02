@@ -82,6 +82,10 @@ jobs:
             --region ${{ env.REGION }} \
             --output-template-file packaged-dev.yml
 
+      - name: Set API env in template file
+        run: |
+          sed -i 's/{API_ENV}/dev/g' packaged-dev.yml
+
       - uses: actions/upload-artifact@v2
         with:
           name: packaged-dev.yml
