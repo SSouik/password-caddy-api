@@ -7,3 +7,6 @@ env.json
 
 # Coverage report
 coverage
+
+# Go vendor
+vendor/

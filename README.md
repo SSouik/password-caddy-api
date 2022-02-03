@@ -1,140 +1,125 @@
-# password-caddy-api
+# Password Caddy API
+Password Caddy API built using AWS SAM and GoLang. This API leverages AWS SAM to create a serverless architecture API utilizing, API Gateway, Lambda, and Dynamo DB.
 
-This is a sample template for password-caddy-api - Below is a brief explanation of what we have generated for you:
+<br/>
 
+## Table of Contents
+* [File Structure](#file-structure)
+* [Requirements](#requirements)
+* [Getting Started](#getting-started)
+    * [Install Modules](#install-modules)
+    * [Validate](#validate)
+    * [Build](#build)
+    * [Local Start](#local-start)
+    * [Unit Tests](#unit-tests)
+
+<br/>
+
+## File Structure
 ```bash
 .
-├── Makefile                    <-- Make to automate build
-├── README.md                   <-- This instructions file
-├── hello-world                 <-- Source code for a lambda function
-│   ├── main.go                 <-- Lambda function code
-│   └── main_test.go            <-- Unit tests
-└── template.yaml
+├── Makefile                               <-- Make to automate build
+├── README.md                              <-- This instructions file
+├── scripts                                <-- Contains useful scripts for local development and CI
+│   ├── CreateController.ps1               <-- Powershell script to bootstrap a controller under the src/controllers dir
+│   ├── set_env.sh                         <-- Changes environment variables in template.yaml for local development
+│   └── version_check                      <-- Checks if current version is greater than upstream version
+├── src                                    <-- Source code for a lambda function
+│   ├── controllers                        <-- Contains all the controllers (Lambda) code
+│   │   └── auth                           <-- Contains all the Auth controllers (i.e login, registration)
+│   │       ├── create-user                <-- The controller folder for the Lambda function to create a user
+│   │       │    ├── create_user.go        <-- Create User Lambda function code
+│   │       │    └── create_user_test.go   <-- Unit tests for create user Lambda function
+│   │       └── login                      <-- The controller folder for the Lambda function to login
+│   │           ├── login.go               <-- Login Lambda function code
+│   │           └── login_test.go          <-- Unit tests for login Lambda function
+│   ├── core                               <-- Contains core packages (Types, config, etc)
+│   │   └── config                         <-- Config module (Contains the config core logic)
+│   │       ├── config.go                  <-- Config module (Hanldes fetching environment variables and converting them to int, bool, etc)
+│   │       └── config_test.go             <-- Unit tests for config
+│   └── lib                                <-- Contains all the controllers (Lambda) code
+│       ├── result                         <-- The result module (Contains the types and functions for a global result object)
+│       │   ├── result.go                  <-- The result code
+│       │   └── result_test.go             <-- Unit tests for result
+│       └── util                           <-- The util module (Contains static utility methods)
+│           ├── util.go                    <-- Collection of utility functions
+│           └── util_test.go               <-- Unit tests for util
+├── go.mod                                 <-- Root go module file
+├── go.sum                                 <-- Root go module sum file
+├── sam.version                            <-- SAM version file (Just shows the current version of SAM used)
+├── template.local.yml                     <-- SAM template file for local development
+├── template.yml                           <-- SAM template file for AWS deployments
+└── version.json                           <-- Version of the API in format major.minor.patch (i.e 1.0.0)
 ```
+
+<br/>
 
 ## Requirements
 
-* AWS CLI already configured with Administrator permission
-* [Docker installed](https://www.docker.com/community-edition)
-* [Golang](https://golang.org)
-* SAM CLI - [Install the SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
+* [AWS CLI](https://aws.amazon.com/cli/)
+* [Docker](https://www.docker.com/community-edition)
+* [Golang](https://golang.org) version `1.17`
+* [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html) version `1.35`
 
-## Setup process
+<br/>
 
-### Installing dependencies & building the target 
-
-In this example we use the built-in `sam build` to automatically download all the dependencies and package our build target.   
-Read more about [SAM Build here](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-build.html) 
-
-The `sam build` command is wrapped inside of the `Makefile`. To execute this simply run
- 
-```shell
-make
+## Getting Started
+This project has a `Makefile`. To install on Windows, use `chocolately`
+```powershell
+choco install make
 ```
 
-### Local development
-
-**Invoking function locally through local API Gateway**
-
+### Install Modules
 ```bash
-sam local start-api
+go mod vendor
 ```
+> This will install go modules in `go.mod` into the `vendor` directory
 
-If the previous command ran successfully you should now be able to hit the following local endpoint to invoke your function `http://localhost:3000/hello`
+<br/>
 
-**SAM CLI** is used to emulate both Lambda and API Gateway locally and uses our `template.yaml` to understand how to bootstrap this environment (runtime, where the source code is, etc.) - The following excerpt is what the CLI will read in order to initialize an API and its routes:
-
-```yaml
-...
-Events:
-    HelloWorld:
-        Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-        Properties:
-            Path: /hello
-            Method: get
-```
-
-## Packaging and deployment
-
-AWS Lambda Golang runtime requires a flat folder with the executable generated on build step. SAM will use `CodeUri` property to know where to look up for the application:
-
-```yaml
-...
-    FirstFunction:
-        Type: AWS::Serverless::Function
-        Properties:
-            CodeUri: hello_world/
-            ...
-```
-
-To deploy your application for the first time, run the following in your shell:
-
+### Validate
+Validate `template.yml`
 ```bash
-sam deploy --guided
+make validate
 ```
 
-The command will package and deploy your application to AWS, with a series of prompts:
-
-* **Stack Name**: The name of the stack to deploy to CloudFormation. This should be unique to your account and region, and a good starting point would be something matching your project name.
-* **AWS Region**: The AWS region you want to deploy your app to.
-* **Confirm changes before deploy**: If set to yes, any change sets will be shown to you before execution for manual review. If set to no, the AWS SAM CLI will automatically deploy application changes.
-* **Allow SAM CLI IAM role creation**: Many AWS SAM templates, including this example, create AWS IAM roles required for the AWS Lambda function(s) included to access AWS services. By default, these are scoped down to minimum required permissions. To deploy an AWS CloudFormation stack which creates or modifies IAM roles, the `CAPABILITY_IAM` value for `capabilities` must be provided. If permission isn't provided through this prompt, to deploy this example you must explicitly pass `--capabilities CAPABILITY_IAM` to the `sam deploy` command.
-* **Save arguments to samconfig.toml**: If set to yes, your choices will be saved to a configuration file inside the project, so that in the future you can just re-run `sam deploy` without parameters to deploy changes to your application.
-
-You can find your API Gateway Endpoint URL in the output values displayed after deployment.
-
-### Testing
-
-We use `testing` package that is built-in in Golang and you can simply run the following command to run our tests:
-
-```shell
-go test -v ./hello-world/
-```
-# Appendix
-
-### Golang installation
-
-Please ensure Go 1.x (where 'x' is the latest version) is installed as per the instructions on the official golang website: https://golang.org/doc/install
-
-A quickstart way would be to use Homebrew, chocolatey or your linux package manager.
-
-#### Homebrew (Mac)
-
-Issue the following command from the terminal:
-
-```shell
-brew install golang
+Validate `template.local.yml`
+```bash
+make validate-local
 ```
 
-If it's already installed, run the following command to ensure it's the latest version:
+<br/>
 
-```shell
-brew update
-brew upgrade golang
+### Build
+Build `template.yml`
+```bash
+make build
 ```
 
-#### Chocolatey (Windows)
-
-Issue the following command from the powershell:
-
-```shell
-choco install golang
+Build `template.local.yml`
+```bash
+make build-local
 ```
 
-If it's already installed, run the following command to ensure it's the latest version:
+<br/>
 
-```shell
-choco upgrade golang
+### Local Start
+Start the API locally. Requires Docker to be running.
+```bash
+make api
 ```
 
-## Bringing to the next level
+<br/>
 
-Here are a few ideas that you can use to get more acquainted as to how this overall process works:
+### Unit Tests
+Run unit tests
+```bash
+make test
+```
 
-* Create an additional API resource (e.g. /hello/{proxy+}) and return the name requested through this new path
-* Update unit test to capture that
-* Package & Deploy
+Run unit tests with coverage report. Opens the report afterwards.
+```bash
+make coverage
+```
 
-Next, you can use the following resources to know more about beyond hello world samples and how others structure their Serverless applications:
-
-* [AWS Serverless Application Repository](https://aws.amazon.com/serverless/serverlessrepo/)
+<br/>
