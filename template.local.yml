@@ -35,7 +35,7 @@ Resources:
     Properties:
       FunctionName: CreateUserFunction
       Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/dynamodb"
-      CodeUri: src/controllers/create-user/
+      CodeUri: src/controllers/auth/create-user/
       Handler: main
       Runtime: go1.x
       Architectures:
@@ -53,7 +53,7 @@ Resources:
     Properties:
       FunctionName: LoginFunction
       # Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/cognito"
-      CodeUri: src/controllers/login/
+      CodeUri: src/controllers/auth/login/
       Handler: main
       Runtime: go1.x
       Architectures:

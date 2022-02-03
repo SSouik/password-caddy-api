@@ -23,9 +23,9 @@ validate:
 build: validate
 	sam build --template template.yml
 
-.PHONY: start
+.PHONY: api
 
-start: build-local
+api: build-local
 	sam local start-api --env-vars env.json
 
 .PHONY: package
