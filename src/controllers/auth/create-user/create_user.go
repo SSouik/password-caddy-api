@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"password-caddy/util"
+	"password-caddy/api/src/lib/util"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"

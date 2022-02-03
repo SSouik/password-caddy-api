@@ -1,8 +1,8 @@
 package main
 
 import (
-	"password-caddy/config"
-	"password-caddy/result"
+	"password-caddy/api/src/core/config"
+	"password-caddy/api/src/lib/result"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"

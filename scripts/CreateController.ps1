@@ -1,9 +1,8 @@
 # This script will bootstrap a Hello world controller written in golang
-# at the location you specify relative to the src directory
+# at the location you specify relative to the src/controllers directory
 # Example: ./scripts/CreateController.ps1 foo
-# The above example will create a directory named "foo" at src/foo
-# and bootstrap a go module called "foo" that is set up to run as
-# an AWS Lambda function
+# The above example will create a directory named "foo" at src/controllers/foo
+# and a file main.go set up to be run as an AWS Lambda function
 
 $ControllerName = $args[0]
 
@@ -19,9 +18,7 @@ $ControllerTemplate =
 'package main
 
 import (
-	"encoding/json"
-
-	"password-caddy/result"
+	"password-caddy/api/src/lib/result"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -64,21 +61,6 @@ Write-Host "Info: Creating file src/controllers/$($ControllerName)/main.go ..."
 
 New-Item -Path "$($Path)\main.go" -ItemType File | Out-Null
 Set-Content -Path "$($Path)\main.go" -Value $ControllerTemplate | Out-Null
-
-Write-Host "Info: Initializing module..."
-Set-Location -Path $Path
-
-# Set up go module with defaults
-go mod init "password-caddy/$($ControllerName)"
-go mod tidy
-go get github.com/aws/aws-lambda-go
-go install
-
-Add-Content -Path "$($Path)\go.mod" -Value "require password-caddy/result v1.0.0" | Out-Null
-Add-Content -Path "$($Path)\go.mod" -Value "" | Out-Null
-Add-Content -Path "$($Path)\go.mod" -Value "replace password-caddy/result => ../../lib/result" | Out-Null
-
-Set-Location -Path $Dir
 
 Write-Host "----------"
 Write-Host "Controller created. Make sure to add the controller to template.yml"
