@@ -4,3 +4,6 @@ packaged*
 
 # Env file
 env.json
+
+# Coverage report
+coverage
