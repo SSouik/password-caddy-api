@@ -13,6 +13,17 @@ validate-local:
 build-local: validate-local
 	sam build --template template.local.yml
 
+.PHONY: test
+
+test:
+	go test ./... -v
+
+.PHONY: coverage
+
+coverage:
+	go test ./... -cover -coverprofile=coverage
+	go tool cover -html=coverage
+
 .PHONY: validate
 
 validate:
