@@ -1,0 +1,22 @@
+name: Pull Request Version Check
+
+on:
+  pull_request:
+    branches:
+      - 'main'
+    paths-ignore:
+      - 'README.md'
+      - 'Makefile'
+      - 'sam.version'
+      - '.gitignore'
+      - 'scripts/*'
+      - '.github/**'
+
+jobs:
+  version-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check Version
+        run: |
+          scripts/version_check ${{ secrets.RAW_GITHUB_TOKEN }}
