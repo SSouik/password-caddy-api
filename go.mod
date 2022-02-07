@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.13.0
 	github.com/aws/aws-sdk-go-v2/config v1.13.1
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.13.0
+	github.com/go-resty/resty/v2 v2.7.0
 )
 
 require (
@@ -22,4 +23,5 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.14.0 // indirect
 	github.com/aws/smithy-go v1.10.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	golang.org/x/net v0.0.0-20211029224645-99673261e6eb // indirect
 )

@@ -1,8 +1,3 @@
-.PHONY: controller
-
-controller:
-	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe .\scripts\CreateController.ps1
-
 .PHONY: validate-local
 
 validate-local:
@@ -23,6 +18,11 @@ test:
 coverage:
 	go test ./... -cover -coverprofile=coverage
 	go tool cover -html=coverage
+
+.PHONY:
+
+mod:
+	go mod vendor
 
 .PHONY: validate
 
@@ -76,3 +76,8 @@ delete:
 
 invoke-login: build-local
 	sam local invoke LoginFunction --env-vars env.json
+
+.PHONY: controller
+
+controller:
+	C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe .\scripts\CreateController.ps1
