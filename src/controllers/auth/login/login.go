@@ -1,7 +1,8 @@
 package main
 
 import (
-	"password-caddy/api/src/core/config"
+	"errors"
+	"password-caddy/api/src/core/container"
 	"password-caddy/api/src/lib/result"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -14,11 +15,20 @@ type LoginResponse struct {
 }
 
 func GetToken() *result.Result {
-	var response LoginResponse
-	response.Token = config.Get("TEST_TOKEN", "default_token").ToString()
-	response.Expiration = config.Get("EXPIRATION", "1000").ToInt64()
+	response := container.SesClient().
+		BuildEmailRequest("samuel.souik@gmail.com").
+		Send()
 
-	return result.SuccessWithValue(response)
+	if response.IsSuccess {
+		return result.SuccessWithValue(LoginResponse{Token: response.MessageId})
+	}
+
+	return result.Failure(401, errors.New(response.ErrorMessage))
+	// var response LoginResponse
+	// response.Token = config.Get("TEST_TOKEN", "default_token").ToString()
+	// response.Expiration = config.Get("EXPIRATION", "1000").ToInt64()
+
+	// return result.SuccessWithValue(response)
 }
 
 func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
