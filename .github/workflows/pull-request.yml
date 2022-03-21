@@ -42,6 +42,12 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     steps:
+      - name: Set up AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.REGION }}
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
