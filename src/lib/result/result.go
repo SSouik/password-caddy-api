@@ -19,36 +19,15 @@ type Result struct {
 	Error      error
 }
 
-/*
-  Create a new Result
-*/
-func Create() *Result {
-	return &Result{
-		IsSuccess:  true,
-		StatusCode: 200,
-		Value:      nil,
-		Error:      nil,
-	}
-}
-
-func CreateWithValue(value ResultValue) *Result {
-	return &Result{
-		IsSuccess:  true,
-		StatusCode: 200,
-		Value:      value,
-		Error:      nil,
-	}
-}
-
 /********** SUCCESS FUNCS **********/
 
 /*
   Create a new successful Result
 */
-func Success() *Result {
+func Success(statusCode int) *Result {
 	return &Result{
 		IsSuccess:  true,
-		StatusCode: 200,
+		StatusCode: statusCode,
 		Value:      nil,
 		Error:      nil,
 	}
@@ -57,10 +36,10 @@ func Success() *Result {
 /*
   Create a new successful Result with a value
 */
-func SuccessWithValue(value ResultValue) *Result {
+func SuccessWithValue(statusCode int, value ResultValue) *Result {
 	return &Result{
 		IsSuccess:  true,
-		StatusCode: 200,
+		StatusCode: statusCode,
 		Value:      value,
 		Error:      nil,
 	}
@@ -84,55 +63,6 @@ func Failure(statusCode int, err error) *Result {
 
 /********** END FAILURE FUNCS **********/
 
-/********** EXTENSION FUNCS **********/
-
-/*
-  Execute a function that returns a Result only when the
-  Result is successful
-*/
-func (result *Result) ThenApply(fn func() *Result) *Result {
-	if !result.IsSuccess {
-		return Failure(result.StatusCode, result.Error)
-	}
-
-	return fn()
-}
-
-/*
-  Apply a function to the Result's value
-*/
-func (result *Result) ThenApplyToValue(fn func(ResultValue) *Result) *Result {
-	if !result.IsSuccess {
-		return Failure(result.StatusCode, result.Error)
-	}
-
-	return fn(result.Value)
-}
-
-/*
-  Apply a predicate function to the Result and if it returns true,
-  then return a successful Result
-*/
-func (result *Result) SuccessWhen(fn func(*Result) bool) *Result {
-	if fn(result) {
-		return Success()
-	}
-
-	return Failure(result.StatusCode, result.Error)
-}
-
-/*
-  Apply a predicate function to the Result's value and if it returns true,
-  then return a successful Result
-*/
-func (result *Result) SuccessWhenValue(fn func(ResultValue) bool) *Result {
-	if fn(result.Value) {
-		return Success()
-	}
-
-	return Failure(result.StatusCode, result.Error)
-}
-
 /*
   Convert the Result to an API Gateway Proxy Reponse
 */
@@ -145,6 +75,10 @@ func (result *Result) ToAPIGatewayResponse() (events.APIGatewayProxyResponse, er
 	response := events.APIGatewayProxyResponse{
 		StatusCode: result.StatusCode,
 		Headers:    defaultHeaders,
+	}
+
+	if result.IsSuccess && result.Value == nil {
+		return response, nil
 	}
 
 	if result.IsSuccess {

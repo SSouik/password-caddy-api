@@ -11,8 +11,8 @@ import (
 )
 
 type SesClient struct {
-	client *ses.Client
-	email  *ses.SendEmailInput
+	Client *ses.Client
+	Email  *ses.SendEmailInput
 }
 
 type SesResponse struct {
@@ -35,7 +35,7 @@ Create a new instance of the AWS Ses Client
 */
 func Create(awsConfig aws.Config) *SesClient {
 	var client SesClient
-	client.client = ses.NewFromConfig(awsConfig)
+	client.Client = ses.NewFromConfig(awsConfig)
 	return &client
 }
 
@@ -71,7 +71,7 @@ func (client *SesClient) BuildEmailRequest(email string) *SesClient {
 		},
 	}
 
-	client.email = &input
+	client.Email = &input
 
 	return client
 }
@@ -80,7 +80,7 @@ func (client *SesClient) BuildEmailRequest(email string) *SesClient {
 Send the email via AWS SES
 */
 func (client *SesClient) Send() *SesResponse {
-	res, err := client.client.SendEmail(context.TODO(), client.email)
+	res, err := client.Client.SendEmail(context.TODO(), client.Email)
 
 	if err != nil {
 		return Failure(err.Error())

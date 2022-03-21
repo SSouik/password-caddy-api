@@ -20,21 +20,14 @@ func GetToken() *result.Result {
 		Send()
 
 	if response.IsSuccess {
-		return result.SuccessWithValue(LoginResponse{Token: response.MessageId})
+		return result.SuccessWithValue(200, LoginResponse{Token: response.MessageId})
 	}
 
 	return result.Failure(401, errors.New(response.ErrorMessage))
-	// var response LoginResponse
-	// response.Token = config.Get("TEST_TOKEN", "default_token").ToString()
-	// response.Expiration = config.Get("EXPIRATION", "1000").ToInt64()
-
-	// return result.SuccessWithValue(response)
 }
 
 func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	return result.Create().
-		ThenApply(GetToken).
-		ToAPIGatewayResponse()
+	return GetToken().ToAPIGatewayResponse()
 }
 
 func main() {

@@ -40,7 +40,7 @@ func CreateUser(request Request) *result.Result {
 		Put(item)
 
 	if response.IsSuccess {
-		return result.Success()
+		return result.Success(202)
 	}
 
 	return result.Failure(500, errors.New(response.ErrorMessage))
