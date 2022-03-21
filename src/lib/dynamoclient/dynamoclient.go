@@ -2,7 +2,6 @@ package dynamoclient
 
 import (
 	"context"
-	"password-caddy/api/src/core/config"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -10,8 +9,12 @@ import (
 )
 
 type DynamoClient struct {
-	client    *dynamodb.Client
-	tableName string
+	Client *dynamodb.Client
+	Config DynamoConfig
+}
+
+type DynamoConfig struct {
+	TableName string
 }
 
 type DynamoResponse struct {
@@ -24,14 +27,36 @@ Create a new instance of the AWS DynamoDB Client
 */
 func Create(awsConfig aws.Config) *DynamoClient {
 	var dynamo DynamoClient
-
-	dynamo.client = dynamodb.NewFromConfig(awsConfig)
-
-	// Get the table name from the config
-	dynamo.tableName = config.Get("DYNAMO_TABLE", "password-caddy-dev").
-		ToString()
+	dynamo.Client = dynamodb.NewFromConfig(awsConfig)
 
 	return &dynamo
+}
+
+func (dynamo *DynamoClient) WithConfig(config DynamoConfig) *DynamoClient {
+	dynamo.Config = config
+	return dynamo
+}
+
+/*
+Put an item in the DynamoDB table
+
+@see - https://docs.aws.amazon.com/sdk-for-go/api/service/dynamodb/#DynamoDB.PutItem
+*/
+func (dynamo *DynamoClient) Put(item map[string]string) *DynamoResponse {
+	var putInput *dynamodb.PutItemInput
+
+	putInput = &dynamodb.PutItemInput{
+		TableName: aws.String(dynamo.Config.TableName),
+		Item:      ConvertToDynamoItem(item),
+	}
+
+	_, err := dynamo.Client.PutItem(context.TODO(), putInput)
+
+	if err != nil {
+		return Failure(err.Error())
+	}
+
+	return Success()
 }
 
 /*
@@ -48,28 +73,6 @@ func ConvertToDynamoItem(obj map[string]string) map[string]types.AttributeValue 
 	}
 
 	return dynamoItem
-}
-
-/*
-Put an item in the DynamoDB table
-
-@see - https://docs.aws.amazon.com/sdk-for-go/api/service/dynamodb/#DynamoDB.PutItem
-*/
-func (dynamo *DynamoClient) Put(item map[string]string) *DynamoResponse {
-	var putInput *dynamodb.PutItemInput
-
-	putInput = &dynamodb.PutItemInput{
-		TableName: aws.String(dynamo.tableName),
-		Item:      ConvertToDynamoItem(item),
-	}
-
-	_, err := dynamo.client.PutItem(context.TODO(), putInput)
-
-	if err != nil {
-		return Failure(err.Error())
-	}
-
-	return Success()
 }
 
 /*

@@ -24,6 +24,7 @@ Globals:
       Variables:
         TEST_TOKEN:
         EXPIRATION:
+        DYNAMO_TABLE:
 
 Resources:
   PasswordCaddyApi:

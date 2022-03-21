@@ -3,7 +3,7 @@ package container
 import (
 	"context"
 	"fmt"
-	"password-caddy/api/src/core/config"
+	appConfig "password-caddy/api/src/core/config"
 	"password-caddy/api/src/lib/dynamoclient"
 	"password-caddy/api/src/lib/sesclient"
 
@@ -12,7 +12,7 @@ import (
 )
 
 func TestGetConfig() string {
-	return config.Get("TEST_TOKEN", "FOOBAR").ToString()
+	return appConfig.Get("TEST_TOKEN", "FOOBAR").ToString()
 }
 
 /*
@@ -34,5 +34,12 @@ func SesClient() *sesclient.SesClient {
 }
 
 func DynamoClient() *dynamoclient.DynamoClient {
-	return dynamoclient.Create(LoadAwsConfig())
+	var config dynamoclient.DynamoConfig
+
+	config = dynamoclient.DynamoConfig{
+		TableName: appConfig.Get("DYNAMO_TABLE", "password-caddy-dev").ToString(),
+	}
+
+	return dynamoclient.Create(LoadAwsConfig()).
+		WithConfig(config)
 }
