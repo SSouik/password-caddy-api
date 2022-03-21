@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"password-caddy/api/src/core/config"
+	"password-caddy/api/src/lib/dynamoclient"
 	"password-caddy/api/src/lib/sesclient"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -30,4 +31,8 @@ func LoadAwsConfig() aws.Config {
 
 func SesClient() *sesclient.SesClient {
 	return sesclient.Create(LoadAwsConfig())
+}
+
+func DynamoClient() *dynamoclient.DynamoClient {
+	return dynamoclient.Create(LoadAwsConfig())
 }
