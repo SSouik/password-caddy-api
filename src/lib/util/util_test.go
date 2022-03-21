@@ -104,3 +104,11 @@ func TestSerializeJsonWIthInvalidObject(t *testing.T) {
 		t.Errorf("SerializeJson failed to serialize")
 	}
 }
+
+func TestGenerateOTPWithZeroLength(t *testing.T) {
+	otp, _ := GenerateOTP(6)
+
+	if len(otp) != 6 {
+		t.Errorf("FAILED | GenerateOTP | Expected 6 | Actual %d", len(otp))
+	}
+}
