@@ -24,6 +24,10 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /password-caddy-api/${API_ENV}/v1/TEST_TOKEN
     Description: Test Expiration
+  DYNAMOTABLE:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /password-caddy-api/${API_ENV}/v1/DYNAMO_TABLE
+    Description: Test Expiration
 
 Globals:
   Function:
@@ -32,6 +36,7 @@ Globals:
       Variables:
         TEST_TOKEN: !Ref TESTTOKEN
         EXPIRATION: !Ref TESTEXPIRATION
+        DYNAMO_TABLE: !Ref DYNAMOTABLE
 
 Resources:
   PasswordCaddyApi:

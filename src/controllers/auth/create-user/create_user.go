@@ -2,16 +2,14 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 
+	"password-caddy/api/src/core/container"
+	"password-caddy/api/src/lib/result"
 	"password-caddy/api/src/lib/util"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 type Response struct {
@@ -19,68 +17,47 @@ type Response struct {
 }
 
 type Request struct {
-	UserId string `json:"userId"`
+	Email string `json:"userId"`
+}
+
+func GetRequest(event events.APIGatewayProxyRequest) (Request, error) {
+	var request Request
+
+	err := util.DeserializeJson(event.Body, &request)
+
+	if err != nil {
+		return request, err
+	}
+
+	return request, nil
+}
+
+func CreateUser(request Request) *result.Result {
+	item := make(map[string]string)
+	item["USER_ID"] = request.Email
+
+	response := container.DynamoClient().
+		Put(item)
+
+	if !response.IsSuccess {
+		return result.Failure(
+			response.Error.StatusCode,
+			errors.New(response.Error.Message),
+		)
+	}
+
+	return result.Success(202)
 }
 
 func Handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var body Response
-
-	var request Request
-
-	jsonErr := util.DeserializeJson(event.Body, &request)
-
-	if jsonErr != nil {
-		body.Message = jsonErr.Error()
-		res, _ := json.Marshal(body)
-
-		return events.APIGatewayProxyResponse{
-			Body:       string(res),
-			StatusCode: 500,
-		}, nil
-	}
-
-	cfg, cfgerr := config.LoadDefaultConfig(context.TODO())
-
-	if cfgerr != nil {
-		body.Message = cfgerr.Error()
-		res, _ := json.Marshal(body)
-
-		return events.APIGatewayProxyResponse{
-			Body:       string(res),
-			StatusCode: 500,
-		}, nil
-	}
-
-	// This works and will create a user in the data base
-	client := dynamodb.NewFromConfig(cfg)
-
-	input := &dynamodb.PutItemInput{
-		TableName: aws.String("password-caddy-dev"),
-		Item: map[string]types.AttributeValue{
-			"USER_ID": &types.AttributeValueMemberS{
-				Value: request.UserId,
-			},
-		},
-	}
-
-	response, err := client.PutItem(ctx, input)
+	request, err := GetRequest(event)
 
 	if err != nil {
-		body.Message = err.Error()
-		res, _ := json.Marshal(body)
-
-		return events.APIGatewayProxyResponse{
-			Body:       string(res),
-			StatusCode: 500,
-		}, nil
+		return result.Failure(500, err).
+			ToAPIGatewayResponse()
 	}
 
-	responseBody := util.SerializeJson(response)
-
-	return events.APIGatewayProxyResponse{
-		Body:       string(responseBody),
-		StatusCode: 200,
-	}, nil
+	return CreateUser(request).ToAPIGatewayResponse()
 }
 
 func main() {

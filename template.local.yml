@@ -24,6 +24,7 @@ Globals:
       Variables:
         TEST_TOKEN:
         EXPIRATION:
+        DYNAMO_TABLE:
 
 Resources:
   PasswordCaddyApi:
@@ -48,12 +49,12 @@ Resources:
             Path: /v1/user
             Method: POST
             ApiId: !Ref PasswordCaddyApi
-  LoginFunction:
+  LoginChallengeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: LoginFunction
+      FunctionName: LogingChallengeFunction
       # Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/cognito"
-      CodeUri: src/controllers/auth/login/
+      CodeUri: src/controllers/auth/loginchallenge/
       Handler: main
       Runtime: go1.x
       Architectures:
@@ -63,6 +64,6 @@ Resources:
         HttpApiEvent:
           Type: HttpApi
           Properties:
-            Path: /v1/login
+            Path: /v1/login/challenge/{email}
             Method: GET
             ApiId: !Ref PasswordCaddyApi
