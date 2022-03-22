@@ -22,8 +22,6 @@ Globals:
     Timeout: 30
     Environment:
       Variables:
-        TEST_TOKEN:
-        EXPIRATION:
         DYNAMO_TABLE:
 
 Resources:
