@@ -18,7 +18,7 @@ Parameters:
     Description: AWS Account ID
   DYNAMOTABLE:
     Type: AWS::SSM::Parameter::Value<String>
-    Default: /password-caddy-api/${API_ENV}/v1/DYNAMO_TABLE
+    Default: /password-caddy-api/{API_ENV}/v1/DYNAMO_TABLE
     Description: The name of the DynamoDB Table
 
 Globals:
