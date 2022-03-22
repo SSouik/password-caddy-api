@@ -55,7 +55,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "password-caddy-api-${ENV}-v1-LoginChallenge"
-      # Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/cognito"
+      Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/ses-dynamo"
       CodeUri: src/controllers/auth/loginchallenge/
       Handler: main
       Runtime: go1.x
