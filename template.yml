@@ -16,26 +16,16 @@ Parameters:
     Type: String
     Default: ""
     Description: AWS Account ID
-  TESTTOKEN:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /password-caddy-api/${API_ENV}/v1/TEST_TOKEN
-    Description: Test Token
-  TESTEXPIRATION:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /password-caddy-api/${API_ENV}/v1/TEST_TOKEN
-    Description: Test Expiration
   DYNAMOTABLE:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /password-caddy-api/${API_ENV}/v1/DYNAMO_TABLE
-    Description: Test Expiration
+    Description: The name of the DynamoDB Table
 
 Globals:
   Function:
     Timeout: 30
     Environment:
       Variables:
-        TEST_TOKEN: !Ref TESTTOKEN
-        EXPIRATION: !Ref TESTEXPIRATION
         DYNAMO_TABLE: !Ref DYNAMOTABLE
 
 Resources:
@@ -61,12 +51,12 @@ Resources:
             Path: /v1/user
             Method: POST
             ApiId: !Ref PasswordCaddyApi
-  LoginFunction:
+  LoginChallengeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "password-caddy-api-${ENV}-v1-Login"
+      FunctionName: !Sub "password-caddy-api-${ENV}-v1-LoginChallenge"
       # Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/cognito"
-      CodeUri: src/controllers/auth/login/
+      CodeUri: src/controllers/auth/loginchallenge/
       Handler: main
       Runtime: go1.x
       Architectures:
@@ -76,7 +66,7 @@ Resources:
         HttpApiEvent:
           Type: HttpApi
           Properties:
-            Path: /v1/login
+            Path: /v1/login/challenge/{email}
             Method: GET
             ApiId: !Ref PasswordCaddyApi
 
@@ -87,9 +77,9 @@ Outputs:
     Value: !Sub "https://${PasswordCaddyApi}.execute-api.${AWS::Region}.amazonaws.com/"
   
   # Endpoints
-  LoginEndpoint:
-    Description: "Endpoint for Login Lambda"
-    Value: !Sub "https://${PasswordCaddyApi}.execute-api.${AWS::Region}.amazonaws.com/v1/login"
+  LoginChallengeEndpoint:
+    Description: "Endpoint for the Login Challenge Lambda"
+    Value: !Sub "https://${PasswordCaddyApi}.execute-api.${AWS::Region}.amazonaws.com/v1/login/challenge/{email}"
   CreateUserEndpoint:
-    Description: "Endpoint for Login Lambda"
+    Description: "Endpoint for the Create User Lambda"
     Value: !Sub "https://${PasswordCaddyApi}.execute-api.${AWS::Region}.amazonaws.com/v1/user"
