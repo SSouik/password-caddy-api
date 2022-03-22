@@ -39,11 +39,14 @@ func CreateUser(request Request) *result.Result {
 	response := container.DynamoClient().
 		Put(item)
 
-	if response.IsSuccess {
-		return result.Success(202)
+	if !response.IsSuccess {
+		return result.Failure(
+			response.Error.StatusCode,
+			errors.New(response.Error.Message),
+		)
 	}
 
-	return result.Failure(500, errors.New(response.ErrorMessage))
+	return result.Success(202)
 }
 
 func Handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

@@ -2,6 +2,11 @@ package dynamoclient
 
 import (
 	"context"
+	"errors"
+
+	apiError "password-caddy/api/src/core/passwordcaddyerror"
+
+	"github.com/aws/smithy-go"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -18,8 +23,8 @@ type DynamoConfig struct {
 }
 
 type DynamoResponse struct {
-	IsSuccess    bool
-	ErrorMessage string
+	IsSuccess bool
+	Error     apiError.PasswordCaddyError
 }
 
 /*
@@ -53,7 +58,15 @@ func (dynamo *DynamoClient) Put(item map[string]string) *DynamoResponse {
 	_, err := dynamo.Client.PutItem(context.TODO(), putInput)
 
 	if err != nil {
-		return Failure(err.Error())
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) {
+			return Failure(apiError.AWSErrorToPasswordCaddyError(awsErr))
+		}
+
+		return Failure(apiError.PasswordCaddyError{
+			StatusCode: 504,
+			Message:    err.Error(),
+		})
 	}
 
 	return Success()
@@ -87,9 +100,9 @@ func Success() *DynamoResponse {
 /*
 Create a failure Dynamo response
 */
-func Failure(errorMessage string) *DynamoResponse {
+func Failure(pcError apiError.PasswordCaddyError) *DynamoResponse {
 	return &DynamoResponse{
-		IsSuccess:    false,
-		ErrorMessage: errorMessage,
+		IsSuccess: false,
+		Error:     pcError,
 	}
 }

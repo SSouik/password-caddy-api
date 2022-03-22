@@ -2,8 +2,12 @@ package sesclient
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	apiError "password-caddy/api/src/core/passwordcaddyerror"
 	"password-caddy/api/src/lib/util"
+
+	"github.com/aws/smithy-go"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
@@ -16,9 +20,9 @@ type SesClient struct {
 }
 
 type SesResponse struct {
-	IsSuccess    bool
-	MessageId    string
-	ErrorMessage string
+	IsSuccess bool
+	MessageId string
+	Error     apiError.PasswordCaddyError
 }
 
 const OTP_EMAIL_TEMPLATE = `
@@ -83,7 +87,15 @@ func (client *SesClient) Send() *SesResponse {
 	res, err := client.Client.SendEmail(context.TODO(), client.Email)
 
 	if err != nil {
-		return Failure(err.Error())
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) {
+			return Failure(apiError.AWSErrorToPasswordCaddyError(awsErr))
+		}
+
+		return Failure(apiError.PasswordCaddyError{
+			StatusCode: 500,
+			Message:    err.Error(),
+		})
 	}
 
 	return Success(*res.MessageId)
@@ -102,9 +114,9 @@ func Success(messageId string) *SesResponse {
 /*
 Create a failure SES response
 */
-func Failure(errorMessage string) *SesResponse {
+func Failure(pcError apiError.PasswordCaddyError) *SesResponse {
 	return &SesResponse{
-		IsSuccess:    false,
-		ErrorMessage: errorMessage,
+		IsSuccess: false,
+		Error:     pcError,
 	}
 }
