@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"password-caddy/api/src/core/container"
+	"password-caddy/api/src/lib/dynamoclient"
 	"password-caddy/api/src/lib/result"
 	"password-caddy/api/src/lib/util"
 
@@ -33,11 +34,15 @@ func GetRequest(event events.APIGatewayProxyRequest) (Request, error) {
 }
 
 func CreateUser(request Request) *result.Result {
-	item := make(map[string]string)
-	item["USER_ID"] = request.Email
+	var dynamoRequest dynamoclient.DynamoPutRequest
+
+	dynamoRequest.Key = request.Email
+	dynamoRequest.Values = map[string]string{
+		"STATUS": "PENDING_REGISTRATION",
+	}
 
 	response := container.DynamoClient().
-		Put(item)
+		Put(dynamoRequest)
 
 	if !response.IsSuccess {
 		return result.Failure(
@@ -46,7 +51,7 @@ func CreateUser(request Request) *result.Result {
 		)
 	}
 
-	return result.Success(202)
+	return result.Success(201)
 }
 
 func Handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

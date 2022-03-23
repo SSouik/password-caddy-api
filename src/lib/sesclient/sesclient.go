@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	apiError "password-caddy/api/src/core/passwordcaddyerror"
-	"password-caddy/api/src/lib/util"
 
 	"github.com/aws/smithy-go"
 
@@ -46,15 +45,13 @@ func Create(awsConfig aws.Config) *SesClient {
 /*
 Build the email input with the sender and appropriate receiver
 */
-func (client *SesClient) BuildEmailRequest(email string) *SesClient {
+func (client *SesClient) BuildEmailRequest(email, otp string) *SesClient {
 	var sender string = "me@samuelsouik.com" // update after having password-caddy.com email
 	var emails []string = []string{email}
 	var charSet string = "UTF-8"
 	var subject string = "Verification for Password Caddy"
 
-	code, _ := util.GenerateOTP(6)
-
-	html := fmt.Sprintf(OTP_EMAIL_TEMPLATE, code)
+	html := fmt.Sprintf(OTP_EMAIL_TEMPLATE, otp)
 
 	var input ses.SendEmailInput = ses.SendEmailInput{
 		Source: &sender,

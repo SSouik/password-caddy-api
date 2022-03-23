@@ -12,6 +12,11 @@ type ResultError struct {
 
 type ResultValue interface{}
 
+type Resulter interface {
+	GetValue() ResultValue
+	Then(f func(res ResultValue) *Result) *Result
+}
+
 type Result struct {
 	IsSuccess  bool
 	StatusCode int
@@ -19,11 +24,19 @@ type Result struct {
 	Error      error
 }
 
-/********** SUCCESS FUNCS **********/
+func (result *Result) GetValue() ResultValue {
+	return result.Value
+}
 
-/*
-  Create a new successful Result
-*/
+func (result *Result) Then(f func(res ResultValue) *Result) *Result {
+	if !result.IsSuccess {
+		return result
+	}
+
+	return f(result.GetValue())
+}
+
+// Create a new successful Result
 func Success(statusCode int) *Result {
 	return &Result{
 		IsSuccess:  true,
@@ -33,9 +46,7 @@ func Success(statusCode int) *Result {
 	}
 }
 
-/*
-  Create a new successful Result with a value
-*/
+// Create a new successful Result with a value
 func SuccessWithValue(statusCode int, value ResultValue) *Result {
 	return &Result{
 		IsSuccess:  true,
@@ -45,13 +56,7 @@ func SuccessWithValue(statusCode int, value ResultValue) *Result {
 	}
 }
 
-/********** END SUCCESS FUNCS **********/
-
-/********** FAILURE FUNCS **********/
-
-/*
-  Create a new failure Result with a status code and error
-*/
+// Create a new failure Result with a status code and error
 func Failure(statusCode int, err error) *Result {
 	return &Result{
 		IsSuccess:  false,
@@ -61,11 +66,7 @@ func Failure(statusCode int, err error) *Result {
 	}
 }
 
-/********** END FAILURE FUNCS **********/
-
-/*
-  Convert the Result to an API Gateway Proxy Reponse
-*/
+// Convert the Result to an API Gateway Proxy Reponse
 func (result *Result) ToAPIGatewayResponse() (events.APIGatewayProxyResponse, error) {
 	defaultHeaders := map[string]string{
 		"Accept":       "application/json",
@@ -94,5 +95,3 @@ func (result *Result) ToAPIGatewayResponse() (events.APIGatewayProxyResponse, er
 
 	return response, nil
 }
-
-/********** END EXTENSION FUNCS **********/

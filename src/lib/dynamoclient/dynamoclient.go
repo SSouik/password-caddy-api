@@ -27,6 +27,21 @@ type DynamoResponse struct {
 	Error     apiError.PasswordCaddyError
 }
 
+type DynamoPutRequest struct {
+	Key    string
+	Values map[string]string
+}
+
+type DyanamoUpdateRequest struct {
+	Key    string
+	Values map[string]DynamoUpdateItem
+}
+
+type DynamoUpdateItem struct {
+	Action types.AttributeAction
+	Value  string
+}
+
 /*
 Create a new instance of the AWS DynamoDB Client
 */
@@ -42,17 +57,17 @@ func (dynamo *DynamoClient) WithConfig(config DynamoConfig) *DynamoClient {
 	return dynamo
 }
 
-/*
-Put an item in the DynamoDB table
-
-@see - https://docs.aws.amazon.com/sdk-for-go/api/service/dynamodb/#DynamoDB.PutItem
-*/
-func (dynamo *DynamoClient) Put(item map[string]string) *DynamoResponse {
+// Put an item in the DynamoDB table. Creates a new item and overwrites if it exists
+//
+// @see - https://docs.aws.amazon.com/sdk-for-go/api/service/dynamodb/#DynamoDB.PutItem
+func (dynamo *DynamoClient) Put(request DynamoPutRequest) *DynamoResponse {
 	var putInput *dynamodb.PutItemInput
+
+	request.Values["USER_ID"] = request.Key
 
 	putInput = &dynamodb.PutItemInput{
 		TableName: aws.String(dynamo.Config.TableName),
-		Item:      ConvertToDynamoItem(item),
+		Item:      ConvertToDynamoPutItem(request.Values),
 	}
 
 	_, err := dynamo.Client.PutItem(context.TODO(), putInput)
@@ -64,7 +79,40 @@ func (dynamo *DynamoClient) Put(item map[string]string) *DynamoResponse {
 		}
 
 		return Failure(apiError.PasswordCaddyError{
-			StatusCode: 504,
+			StatusCode: 500,
+			Message:    err.Error(),
+		})
+	}
+
+	return Success()
+}
+
+// Update an Existing item in DynamoDB
+//
+// @see - https://docs.aws.amazon.com/sdk-for-go/api/service/dynamodb/#DynamoDB.UpdateItem
+func (dynamo *DynamoClient) Update(request DyanamoUpdateRequest) *DynamoResponse {
+	var updateInput *dynamodb.UpdateItemInput
+
+	updateInput = &dynamodb.UpdateItemInput{
+		TableName: aws.String(dynamo.Config.TableName),
+		Key: map[string]types.AttributeValue{
+			"USER_ID": &types.AttributeValueMemberS{
+				Value: request.Key,
+			},
+		},
+		AttributeUpdates: ConvertToDynamoUpdateItem(request.Values),
+	}
+
+	_, err := dynamo.Client.UpdateItem(context.TODO(), updateInput)
+
+	if err != nil {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) {
+			return Failure(apiError.AWSErrorToPasswordCaddyError(awsErr))
+		}
+
+		return Failure(apiError.PasswordCaddyError{
+			StatusCode: 500,
 			Message:    err.Error(),
 		})
 	}
@@ -73,15 +121,34 @@ func (dynamo *DynamoClient) Put(item map[string]string) *DynamoResponse {
 }
 
 /*
-Map a string -> string JSON object to a DynamoDB Item
+Map a string -> string JSON object to a DynamoDB PutItem
 Update if additional types are needed
 */
-func ConvertToDynamoItem(obj map[string]string) map[string]types.AttributeValue {
+func ConvertToDynamoPutItem(obj map[string]string) map[string]types.AttributeValue {
 	dynamoItem := make(map[string]types.AttributeValue)
 
 	for key, value := range obj {
 		dynamoItem[key] = &types.AttributeValueMemberS{
 			Value: value,
+		}
+	}
+
+	return dynamoItem
+}
+
+/*
+Map a string -> string JSON object to a DynamoDB UpdateItem
+Update if additional types are needed
+*/
+func ConvertToDynamoUpdateItem(item map[string]DynamoUpdateItem) map[string]types.AttributeValueUpdate {
+	dynamoItem := make(map[string]types.AttributeValueUpdate)
+
+	for key, value := range item {
+		dynamoItem[key] = types.AttributeValueUpdate{
+			Action: value.Action,
+			Value: &types.AttributeValueMemberS{
+				Value: value.Value,
+			},
 		}
 	}
 
