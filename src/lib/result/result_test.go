@@ -8,6 +8,43 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
+func AddOne(res ResultValue) *Result {
+	return SuccessWithValue(200, res.(int)+1)
+}
+
+func TestResultGetValue(t *testing.T) {
+	result := SuccessWithValue(200, "abc")
+
+	actual := result.GetValue().(string)
+	expected := "abc"
+
+	if actual != expected {
+		t.Errorf("FAILED - TestResultGetValue | Actual: %s | Expected: %s", actual, expected)
+	}
+}
+
+func TestResultThenMethodWithSuccessfulResult(t *testing.T) {
+	result := SuccessWithValue(200, 1)
+
+	actual := result.Then(AddOne).GetValue().(int)
+	expected := 2
+
+	if actual != expected {
+		t.Errorf("FAILED - TestResultThenMethodWithSuccessfulResult | Actual: %d | Expected: %d", actual, expected)
+	}
+}
+
+func TestResultThenMethodWithFailureResult(t *testing.T) {
+	result := Failure(500, errors.New("Internal Server Error"))
+
+	actual := result.Then(AddOne).Error.Error()
+	expected := "Internal Server Error"
+
+	if actual != expected {
+		t.Errorf("FAILED - TestResultThenMethodWithFailureResult | Actual: %s | Expected: %s", actual, expected)
+	}
+}
+
 func TestSuccess(t *testing.T) {
 	actual := Success(202)
 	expected := Result{
