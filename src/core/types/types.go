@@ -1,5 +1,16 @@
 package types
 
+/***** Custom Error *****/
+
+type PasswordCaddyError struct {
+	StatusCode int
+	Message    string
+}
+
+func (pcError PasswordCaddyError) Error() string {
+	return pcError.Message
+}
+
 type StringValue struct {
 	Value string `json:"Value"`
 }

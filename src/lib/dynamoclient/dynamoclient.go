@@ -4,8 +4,7 @@ import (
 	"context"
 	"errors"
 
-	apiError "password-caddy/api/src/core/passwordcaddyerror"
-	apiUser "password-caddy/api/src/core/types"
+	apiTypes "password-caddy/api/src/core/types"
 	"password-caddy/api/src/lib/util"
 
 	"github.com/aws/smithy-go"
@@ -27,7 +26,7 @@ type DynamoConfig struct {
 type DynamoResponse struct {
 	IsSuccess bool
 	Data      interface{}
-	Error     apiError.PasswordCaddyError
+	Error     apiTypes.PasswordCaddyError
 }
 
 type DynamoGetRequest struct {
@@ -75,10 +74,10 @@ func (dynamo *DynamoClient) Get(request DynamoGetRequest) *DynamoResponse {
 	if err != nil {
 		var awsErr smithy.APIError
 		if errors.As(err, &awsErr) {
-			return Failure(apiError.AWSErrorToPasswordCaddyError(awsErr))
+			return Failure(util.AWSErrorToPasswordCaddyError(awsErr))
 		}
 
-		return Failure(apiError.PasswordCaddyError{
+		return Failure(apiTypes.PasswordCaddyError{
 			StatusCode: 500,
 			Message:    err.Error(),
 		})
@@ -105,10 +104,10 @@ func (dynamo *DynamoClient) Put(request DynamoPutRequest) *DynamoResponse {
 	if err != nil {
 		var awsErr smithy.APIError
 		if errors.As(err, &awsErr) {
-			return Failure(apiError.AWSErrorToPasswordCaddyError(awsErr))
+			return Failure(util.AWSErrorToPasswordCaddyError(awsErr))
 		}
 
-		return Failure(apiError.PasswordCaddyError{
+		return Failure(apiTypes.PasswordCaddyError{
 			StatusCode: 500,
 			Message:    err.Error(),
 		})
@@ -138,10 +137,10 @@ func (dynamo *DynamoClient) Update(request DyanamoUpdateRequest) *DynamoResponse
 	if err != nil {
 		var awsErr smithy.APIError
 		if errors.As(err, &awsErr) {
-			return Failure(apiError.AWSErrorToPasswordCaddyError(awsErr))
+			return Failure(util.AWSErrorToPasswordCaddyError(awsErr))
 		}
 
-		return Failure(apiError.PasswordCaddyError{
+		return Failure(apiTypes.PasswordCaddyError{
 			StatusCode: 500,
 			Message:    err.Error(),
 		})
@@ -151,7 +150,7 @@ func (dynamo *DynamoClient) Update(request DyanamoUpdateRequest) *DynamoResponse
 }
 
 func (response *DynamoResponse) AsUser() *DynamoResponse {
-	var user apiUser.PasswordCaddyUser
+	var user apiTypes.PasswordCaddyUser
 
 	if !response.IsSuccess {
 		return response
@@ -228,7 +227,7 @@ func SuccessWithValue(data interface{}) *DynamoResponse {
 /*
 Create a failure Dynamo response
 */
-func Failure(pcError apiError.PasswordCaddyError) *DynamoResponse {
+func Failure(pcError apiTypes.PasswordCaddyError) *DynamoResponse {
 	return &DynamoResponse{
 		IsSuccess: false,
 		Error:     pcError,

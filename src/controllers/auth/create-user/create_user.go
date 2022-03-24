@@ -45,7 +45,7 @@ func CheckIfUserAlreadyExists(res result.ResultValue) *result.Result {
 	if !response.IsSuccess {
 		return result.Failure(
 			response.Error.StatusCode,
-			errors.New(response.Error.Message),
+			response.Error,
 		)
 	}
 
@@ -78,7 +78,7 @@ func CreateUser(res result.ResultValue) *result.Result {
 	if !response.IsSuccess {
 		return result.Failure(
 			response.Error.StatusCode,
-			errors.New(response.Error.Message),
+			response.Error,
 		)
 	}
 

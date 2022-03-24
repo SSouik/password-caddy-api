@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"password-caddy/api/src/core/container"
 	"password-caddy/api/src/lib/dynamoclient"
 	"password-caddy/api/src/lib/result"
@@ -42,7 +41,7 @@ func SendEmailChallenge(res result.ResultValue) *result.Result {
 	if !response.IsSuccess {
 		return result.Failure(
 			response.Error.StatusCode,
-			errors.New(response.Error.Message),
+			response.Error,
 		)
 	}
 
@@ -69,7 +68,7 @@ func AddOTPToDynamo(res result.ResultValue) *result.Result {
 	if !response.IsSuccess {
 		return result.Failure(
 			response.Error.StatusCode,
-			errors.New(response.Error.Message),
+			response.Error,
 		)
 	}
 
