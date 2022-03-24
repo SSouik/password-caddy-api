@@ -17,7 +17,7 @@ type LoginChallengeRequest struct {
 	Code  string
 }
 
-// Initialize the Login Challenge Request request
+// Initialize the Login Challenge Request
 func Init(event events.APIGatewayProxyRequest) *result.Result {
 	code, _ := util.GenerateOTP(6)
 	email := event.PathParameters["email"]

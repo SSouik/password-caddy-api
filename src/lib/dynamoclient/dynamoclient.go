@@ -5,6 +5,8 @@ import (
 	"errors"
 
 	apiError "password-caddy/api/src/core/passwordcaddyerror"
+	apiUser "password-caddy/api/src/core/types"
+	"password-caddy/api/src/lib/util"
 
 	"github.com/aws/smithy-go"
 
@@ -24,7 +26,12 @@ type DynamoConfig struct {
 
 type DynamoResponse struct {
 	IsSuccess bool
+	Data      interface{}
 	Error     apiError.PasswordCaddyError
+}
+
+type DynamoGetRequest struct {
+	Key string
 }
 
 type DynamoPutRequest struct {
@@ -55,6 +62,29 @@ func Create(awsConfig aws.Config) *DynamoClient {
 func (dynamo *DynamoClient) WithConfig(config DynamoConfig) *DynamoClient {
 	dynamo.Config = config
 	return dynamo
+}
+
+func (dynamo *DynamoClient) Get(request DynamoGetRequest) *DynamoResponse {
+	getInput := &dynamodb.GetItemInput{
+		TableName: aws.String(dynamo.Config.TableName),
+		Key:       ConvertToDyanamoGetItem(request.Key),
+	}
+
+	output, err := dynamo.Client.GetItem(context.TODO(), getInput)
+
+	if err != nil {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) {
+			return Failure(apiError.AWSErrorToPasswordCaddyError(awsErr))
+		}
+
+		return Failure(apiError.PasswordCaddyError{
+			StatusCode: 500,
+			Message:    err.Error(),
+		})
+	}
+
+	return SuccessWithValue(output.Item)
 }
 
 // Put an item in the DynamoDB table. Creates a new item and overwrites if it exists
@@ -120,6 +150,30 @@ func (dynamo *DynamoClient) Update(request DyanamoUpdateRequest) *DynamoResponse
 	return Success()
 }
 
+func (response *DynamoResponse) AsUser() *DynamoResponse {
+	var user apiUser.PasswordCaddyUser
+
+	if !response.IsSuccess {
+		return response
+	}
+
+	json := util.SerializeJson(response.Data)
+	util.DeserializeJson(json, &user)
+
+	response.Data = user
+
+	return response
+}
+
+func ConvertToDyanamoGetItem(key string) map[string]types.AttributeValue {
+	dynamoItem := make(map[string]types.AttributeValue)
+	dynamoItem["USER_ID"] = &types.AttributeValueMemberS{
+		Value: key,
+	}
+
+	return dynamoItem
+}
+
 /*
 Map a string -> string JSON object to a DynamoDB PutItem
 Update if additional types are needed
@@ -155,12 +209,19 @@ func ConvertToDynamoUpdateItem(item map[string]DynamoUpdateItem) map[string]type
 	return dynamoItem
 }
 
-/*
-Create A successful Dynamo response
-*/
 func Success() *DynamoResponse {
 	return &DynamoResponse{
 		IsSuccess: true,
+	}
+}
+
+/*
+Create A successful Dynamo response
+*/
+func SuccessWithValue(data interface{}) *DynamoResponse {
+	return &DynamoResponse{
+		IsSuccess: true,
+		Data:      data,
 	}
 }
 
