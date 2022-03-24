@@ -2,7 +2,7 @@ package result
 
 import (
 	"errors"
-	"password-caddy/api/src/lib/util"
+	"password-caddy/api/lib/util"
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"

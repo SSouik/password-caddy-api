@@ -3,9 +3,9 @@ package container
 import (
 	"context"
 	"fmt"
-	appConfig "password-caddy/api/src/core/config"
-	"password-caddy/api/src/lib/dynamoclient"
-	"password-caddy/api/src/lib/sesclient"
+	appConfig "password-caddy/api/core/config"
+	"password-caddy/api/lib/dynamoclient"
+	"password-caddy/api/lib/sesclient"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"

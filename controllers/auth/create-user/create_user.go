@@ -3,11 +3,11 @@ package main
 import (
 	"errors"
 
-	"password-caddy/api/src/core/container"
-	"password-caddy/api/src/core/types"
-	"password-caddy/api/src/lib/dynamoclient"
-	"password-caddy/api/src/lib/result"
-	"password-caddy/api/src/lib/util"
+	"password-caddy/api/core/container"
+	"password-caddy/api/core/types"
+	"password-caddy/api/lib/dynamoclient"
+	"password-caddy/api/lib/result"
+	"password-caddy/api/lib/util"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"

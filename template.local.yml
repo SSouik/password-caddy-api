@@ -34,7 +34,7 @@ Resources:
     Properties:
       FunctionName: CreateUserFunction
       Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/dynamodb"
-      CodeUri: src/controllers/auth/create-user/
+      CodeUri: controllers/auth/create-user/
       Handler: main
       Runtime: go1.x
       Architectures:
@@ -52,7 +52,7 @@ Resources:
     Properties:
       FunctionName: LogingChallengeFunction
       Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/ses-dynamo"
-      CodeUri: src/controllers/auth/loginchallenge/
+      CodeUri: controllers/auth/loginchallenge/
       Handler: main
       Runtime: go1.x
       Architectures:

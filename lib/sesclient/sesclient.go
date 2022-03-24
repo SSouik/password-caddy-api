@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	apiTypes "password-caddy/api/src/core/types"
-	"password-caddy/api/src/lib/util"
+	apiTypes "password-caddy/api/core/types"
+	"password-caddy/api/lib/util"
 
 	"github.com/aws/smithy-go"
 

@@ -3,7 +3,7 @@ package util
 import (
 	"crypto/rand"
 	"encoding/json"
-	"password-caddy/api/src/core/types"
+	"password-caddy/api/core/types"
 
 	"github.com/aws/smithy-go"
 )
