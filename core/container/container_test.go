@@ -1,7 +1,7 @@
 package container
 
 import (
-	"password-caddy/api/src/lib/sesclient"
+	"password-caddy/api/lib/sesclient"
 	"reflect"
 	"testing"
 )

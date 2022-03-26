@@ -1,8 +1,8 @@
 package result
 
 import (
-	"errors"
-	"password-caddy/api/src/lib/util"
+	"password-caddy/api/core/types"
+	"password-caddy/api/lib/util"
 	"testing"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -35,7 +35,7 @@ func TestResultThenMethodWithSuccessfulResult(t *testing.T) {
 }
 
 func TestResultThenMethodWithFailureResult(t *testing.T) {
-	result := Failure(500, errors.New("Internal Server Error"))
+	result := Failure(500, "Internal Server Error")
 
 	actual := result.Then(AddOne).Error.Error()
 	expected := "Internal Server Error"
@@ -51,11 +51,19 @@ func TestSuccess(t *testing.T) {
 		IsSuccess:  true,
 		StatusCode: 202,
 		Value:      nil,
-		Error:      nil,
+		Error:      *new(types.PasswordCaddyError),
 	}
 
-	if *actual != expected {
-		t.Errorf("FAILED - TestSuccess | Actual: %+v | Expected: %+v", *actual, expected)
+	if actual.IsSuccess != expected.IsSuccess {
+		t.Errorf("FAILED - TestSuccess | Actual: %t | Expected: %t", actual.IsSuccess, expected.IsSuccess)
+	}
+
+	if actual.StatusCode != expected.StatusCode {
+		t.Errorf("FAILED - TestSuccess | Actual: %d | Expected: %d", actual.StatusCode, expected.StatusCode)
+	}
+
+	if actual.Error != expected.Error {
+		t.Errorf("FAILED - TestSuccess | Actual: %+v | Expected: %+v", actual.Error, expected.Error)
 	}
 }
 
@@ -65,27 +73,44 @@ func TestSuccessWithValue(t *testing.T) {
 		IsSuccess:  true,
 		StatusCode: 200,
 		Value:      "Foo",
-		Error:      nil,
+		Error:      *new(types.PasswordCaddyError),
 	}
 
-	if *actual != expected {
-		t.Errorf("FAILED - TestSuccessWithValue | Actual: %+v | Expected: %+v", *actual, expected)
+	if actual.IsSuccess != expected.IsSuccess {
+		t.Errorf("FAILED - TestSuccessWithValue | Actual: %t | Expected: %t", actual.IsSuccess, expected.IsSuccess)
+	}
+
+	if actual.StatusCode != expected.StatusCode {
+		t.Errorf("FAILED - TestSuccessWithValue | Actual: %d | Expected: %d", actual.StatusCode, expected.StatusCode)
+	}
+
+	if actual.Error != expected.Error {
+		t.Errorf("FAILED - TestSuccessWithValue | Actual: %+v | Expected: %+v", actual.Error, expected.Error)
 	}
 }
 
 func TestFailure(t *testing.T) {
-	err := errors.New("Not Found")
-
-	actual := Failure(404, err)
+	actual := Failure(404, "Not Found")
 	expected := Result{
 		IsSuccess:  false,
 		StatusCode: 404,
 		Value:      nil,
-		Error:      err,
+		Error: types.PasswordCaddyError{
+			StatusCode: 404,
+			Message:    "Not Found",
+		},
 	}
 
-	if *actual != expected {
-		t.Errorf("FAILED - TestFailure | Actual: %+v | Expected: %+v", *actual, expected)
+	if actual.IsSuccess != expected.IsSuccess {
+		t.Errorf("FAILED - TestFailure | Actual: %t | Expected: %t", actual.IsSuccess, expected.IsSuccess)
+	}
+
+	if actual.StatusCode != expected.StatusCode {
+		t.Errorf("FAILED - TestFailure | Actual: %d | Expected: %d", actual.StatusCode, expected.StatusCode)
+	}
+
+	if actual.Error != expected.Error {
+		t.Errorf("FAILED - TestFailure | Actual: %+v | Expected: %+v", actual.Error, expected.Error)
 	}
 }
 
@@ -139,7 +164,7 @@ func TestToAPIGatewayResponseWithSuccessfulResultWithNoBody(t *testing.T) {
 }
 
 func TestToAPIGatewayResponseWithFailureResult(t *testing.T) {
-	res := Failure(500, errors.New("Internal Error"))
+	res := Failure(500, "Internal Error")
 	actual, _ := res.ToAPIGatewayResponse()
 	expected := events.APIGatewayProxyResponse{
 		StatusCode: 500,
@@ -147,7 +172,7 @@ func TestToAPIGatewayResponseWithFailureResult(t *testing.T) {
 			"Accept":       "application/json",
 			"Content-Type": "application/json",
 		},
-		Body: "{\"message\":\"Internal Error\"}",
+		Body: "{\"error\":{\"statusCode\":500,\"message\":\"Internal Error\"}}",
 	}
 
 	if actual.StatusCode != expected.StatusCode {

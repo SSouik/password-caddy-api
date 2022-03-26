@@ -18,7 +18,7 @@ $ControllerTemplate =
 'package main
 
 import (
-	"password-caddy/api/src/lib/result"
+	"password-caddy/api/lib/result"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
