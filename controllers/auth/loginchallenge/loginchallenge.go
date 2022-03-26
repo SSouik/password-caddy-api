@@ -41,7 +41,7 @@ func SendEmailChallenge(res result.ResultValue) *result.Result {
 	if !response.IsSuccess {
 		return result.Failure(
 			response.Error.StatusCode,
-			response.Error,
+			response.Error.Message,
 		)
 	}
 
@@ -68,7 +68,7 @@ func AddOTPToDynamo(res result.ResultValue) *result.Result {
 	if !response.IsSuccess {
 		return result.Failure(
 			response.Error.StatusCode,
-			response.Error,
+			response.Error.Message,
 		)
 	}
 

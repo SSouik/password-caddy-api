@@ -1,8 +1,6 @@
 package main
 
 import (
-	"errors"
-
 	"password-caddy/api/core/container"
 	"password-caddy/api/core/types"
 	"password-caddy/api/lib/dynamoclient"
@@ -24,7 +22,7 @@ func Init(event events.APIGatewayProxyRequest) *result.Result {
 	err := util.DeserializeJson(event.Body, &request)
 
 	if err != nil {
-		return result.Failure(500, err)
+		return result.Failure(500, err.Error())
 	}
 
 	return result.SuccessWithValue(200, request)
@@ -45,7 +43,7 @@ func CheckIfUserAlreadyExists(res result.ResultValue) *result.Result {
 	if !response.IsSuccess {
 		return result.Failure(
 			response.Error.StatusCode,
-			response.Error,
+			response.Error.Message,
 		)
 	}
 
@@ -54,7 +52,7 @@ func CheckIfUserAlreadyExists(res result.ResultValue) *result.Result {
 	// If the requested email is associated with an active user,
 	// fail and do not create another record
 	if user.Status.Value == "ACTIVE" {
-		return result.Failure(409, errors.New("Email is already active"))
+		return result.Failure(409, "Email is already active")
 	}
 
 	return result.SuccessWithValue(202, request)
@@ -78,7 +76,7 @@ func CreateUser(res result.ResultValue) *result.Result {
 	if !response.IsSuccess {
 		return result.Failure(
 			response.Error.StatusCode,
-			response.Error,
+			response.Error.Message,
 		)
 	}
 

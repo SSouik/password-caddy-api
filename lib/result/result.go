@@ -1,13 +1,15 @@
 package result
 
 import (
+	"password-caddy/api/core/types"
 	"password-caddy/api/lib/util"
 
 	"github.com/aws/aws-lambda-go/events"
 )
 
 type ResultError struct {
-	Message string `json:"message"`
+	StatusCode int    `json:"statusCode"`
+	Message    string `json:"message"`
 }
 
 type ResultValue interface{}
@@ -21,7 +23,7 @@ type Result struct {
 	IsSuccess  bool
 	StatusCode int
 	Value      ResultValue
-	Error      error
+	Error      types.PasswordCaddyError
 }
 
 func (result *Result) GetValue() ResultValue {
@@ -42,7 +44,7 @@ func Success(statusCode int) *Result {
 		IsSuccess:  true,
 		StatusCode: statusCode,
 		Value:      nil,
-		Error:      nil,
+		Error:      *new(types.PasswordCaddyError),
 	}
 }
 
@@ -52,17 +54,20 @@ func SuccessWithValue(statusCode int, value ResultValue) *Result {
 		IsSuccess:  true,
 		StatusCode: statusCode,
 		Value:      value,
-		Error:      nil,
+		Error:      *new(types.PasswordCaddyError),
 	}
 }
 
 // Create a new failure Result with a status code and error
-func Failure(statusCode int, err error) *Result {
+func Failure(statusCode int, message string) *Result {
 	return &Result{
 		IsSuccess:  false,
 		StatusCode: statusCode,
 		Value:      nil,
-		Error:      err,
+		Error: types.PasswordCaddyError{
+			StatusCode: statusCode,
+			Message:    message,
+		},
 	}
 }
 
@@ -80,15 +85,18 @@ func (result *Result) ToAPIGatewayResponse() (events.APIGatewayProxyResponse, er
 
 	if result.IsSuccess && result.Value == nil {
 		return response, nil
-	}
-
-	if result.IsSuccess {
+	} else if result.IsSuccess {
 		body := util.SerializeJson(result.Value)
 		response.Body = body
 	} else {
-		body := util.SerializeJson(ResultError{
-			Message: result.Error.Error(),
-		})
+		apiResponse := types.PasswordCaddyErrorResponse{
+			Error: ResultError{
+				StatusCode: result.Error.StatusCode,
+				Message:    result.Error.Message,
+			},
+		}
+
+		body := util.SerializeJson(apiResponse)
 
 		response.Body = body
 	}
