@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	sesTypes "github.com/aws/aws-sdk-go-v2/service/ses/types"
 )
 
 type LoginChallengeRequest struct {
@@ -30,6 +31,110 @@ func Init(event events.APIGatewayProxyRequest) *result.Result {
 			Code:  code,
 		},
 	)
+}
+
+// Get the SES verification status of the email address
+func GetEmailStatus(res result.ResultValue) *result.Result {
+	request := res.(LoginChallengeRequest)
+
+	response := container.SesClient().
+		GetVerificationStatus(request.Email)
+
+	if !response.IsSuccess {
+		logger.Error(
+			"Failed to get the verification status of email address",
+			struct {
+				Email string
+				Error coreTypes.PasswordCaddyError
+			}{
+				Email: request.Email,
+				Error: response.Error,
+			},
+		)
+
+		return result.Failure(
+			response.Error.StatusCode,
+			response.Error.Message,
+		)
+	}
+
+	data := response.Data.(struct{ Status sesTypes.VerificationStatus })
+
+	if data.Status != "Success" {
+		logger.Warn(
+			"Attempted to challenge an email that is not verified",
+			struct {
+				Email              string
+				VerificationStatus sesTypes.VerificationStatus
+			}{
+				Email:              request.Email,
+				VerificationStatus: data.Status,
+			},
+		)
+
+		return result.Failure(401, "Unauthorized to challenge email address")
+	}
+
+	logger.Info(
+		"Successfully verified that email address can be challenged",
+		struct {
+			Email              string
+			VerificationStatus sesTypes.VerificationStatus
+		}{
+			Email:              request.Email,
+			VerificationStatus: data.Status,
+		},
+	)
+
+	return result.SuccessWithValue(200, request)
+}
+
+func UpdateEmailStatusInDynamo(res result.ResultValue) *result.Result {
+	request := res.(LoginChallengeRequest)
+
+	dynamoRequest := dynamoclient.DyanamoUpdateRequest{
+		Key: request.Email,
+		Values: map[string]dynamoclient.DynamoUpdateItem{
+			"STATUS": {
+				Action: types.AttributeActionPut,
+				Value:  "ACTIVE",
+			},
+		},
+	}
+
+	response := container.DynamoClient().
+		Update(dynamoRequest)
+
+	if !response.IsSuccess {
+		logger.Error(
+			"Failed to update email status in DynamoDB",
+			struct {
+				Email string
+				Error coreTypes.PasswordCaddyError
+			}{
+				Email: request.Email,
+				Error: response.Error,
+			},
+		)
+
+		return result.Failure(
+			response.Error.StatusCode,
+			response.Error.Message,
+		)
+	}
+
+	logger.Info(
+		"Updated email status in DyanamoDB",
+		struct {
+			Email  string
+			Status string
+		}{
+			Email:  request.Email,
+			Status: "ACTIVE",
+		},
+	)
+
+	return result.SuccessWithValue(200, request)
 }
 
 // Send the user an OTP via email
@@ -60,8 +165,12 @@ func SendEmailChallenge(res result.ResultValue) *result.Result {
 
 	logger.Info(
 		"Successfully sent challenge email",
-		struct{ Email string }{
-			Email: request.Email,
+		struct {
+			Email     string
+			MessageId string
+		}{
+			Email:     request.Email,
+			MessageId: response.Data.(string),
 		},
 	)
 
@@ -116,6 +225,8 @@ func AddOTPToDynamo(res result.ResultValue) *result.Result {
 // Handle the login challenge request
 func Handler(event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	return Init(event).
+		Then(GetEmailStatus).
+		Then(UpdateEmailStatusInDynamo).
 		Then(SendEmailChallenge).
 		Then(AddOTPToDynamo).
 		ToAPIGatewayResponse()

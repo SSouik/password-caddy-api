@@ -77,7 +77,7 @@ func CheckIfUserAlreadyExists(res result.ResultValue) *result.Result {
 	logger.Info(
 		"Requested email to create account is acceptable",
 		struct{ Email string }{
-			Email: user.UserId.Value,
+			Email: request.Email,
 		},
 	)
 
@@ -85,7 +85,6 @@ func CheckIfUserAlreadyExists(res result.ResultValue) *result.Result {
 }
 
 // Create a new record in DynamoDB with the request email
-// TODO - Send verification email via SES
 func CreateUser(res result.ResultValue) *result.Result {
 	request := res.(CreateUserRequest)
 
@@ -126,6 +125,42 @@ func CreateUser(res result.ResultValue) *result.Result {
 		},
 	)
 
+	return result.SuccessWithValue(201, request)
+}
+
+func SendVerificationEmail(res result.ResultValue) *result.Result {
+	request := res.(CreateUserRequest)
+
+	response := container.SesClient().
+		SendVerificationEmail(request.Email)
+
+	if !response.IsSuccess {
+		logger.Error(
+			"Failed to send verification email",
+			struct {
+				Email string
+				Error types.PasswordCaddyError
+			}{
+				Email: request.Email,
+				Error: response.Error,
+			},
+		)
+
+		return result.Failure(
+			response.Error.StatusCode,
+			response.Error.Message,
+		)
+	}
+
+	logger.Info(
+		"Verification email sent",
+		struct {
+			Email string
+		}{
+			Email: request.Email,
+		},
+	)
+
 	return result.Success(201)
 }
 
@@ -133,6 +168,7 @@ func Handler(event events.APIGatewayProxyRequest) (events.APIGatewayProxyRespons
 	return Init(event).
 		Then(CheckIfUserAlreadyExists).
 		Then(CreateUser).
+		Then(SendVerificationEmail).
 		ToAPIGatewayResponse()
 }
 

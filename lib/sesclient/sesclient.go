@@ -22,7 +22,7 @@ type SesClient struct {
 
 type SesResponse struct {
 	IsSuccess bool
-	MessageId string
+	Data      interface{}
 	Error     apiTypes.PasswordCaddyError
 }
 
@@ -42,6 +42,58 @@ func Create(awsConfig aws.Config) *SesClient {
 	var client SesClient
 	client.Client = ses.NewFromConfig(awsConfig)
 	return &client
+}
+
+// Verify an email address
+func (client *SesClient) SendVerificationEmail(email string) *SesResponse {
+	input := ses.VerifyEmailIdentityInput{
+		EmailAddress: &email,
+	}
+
+	_, err := client.Client.VerifyEmailIdentity(context.TODO(), &input)
+
+	if err != nil {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) {
+			return Failure(util.AWSErrorToPasswordCaddyError(awsErr))
+		}
+
+		return Failure(apiTypes.PasswordCaddyError{
+			StatusCode: 500,
+			Message:    err.Error(),
+		})
+	}
+
+	return Success("")
+}
+
+// Get the verification status of an email address
+//
+// param: email - string - email address to get verification status of
+//
+// returns: *SesResponse
+func (client *SesClient) GetVerificationStatus(email string) *SesResponse {
+	input := ses.GetIdentityVerificationAttributesInput{
+		Identities: []string{email},
+	}
+
+	response, err := client.Client.GetIdentityVerificationAttributes(context.TODO(), &input)
+
+	if err != nil {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) {
+			return Failure(util.AWSErrorToPasswordCaddyError(awsErr))
+		}
+
+		return Failure(apiTypes.PasswordCaddyError{
+			StatusCode: 500,
+			Message:    err.Error(),
+		})
+	}
+
+	status := response.VerificationAttributes[email].VerificationStatus
+
+	return Success(struct{ Status types.VerificationStatus }{Status: status})
 }
 
 /*
@@ -103,10 +155,10 @@ func (client *SesClient) Send() *SesResponse {
 /*
 Create A successful SES response
 */
-func Success(messageId string) *SesResponse {
+func Success(data interface{}) *SesResponse {
 	return &SesResponse{
 		IsSuccess: true,
-		MessageId: messageId,
+		Data:      data,
 	}
 }
 
