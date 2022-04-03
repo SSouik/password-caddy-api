@@ -33,7 +33,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: CreateUserFunction
-      Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/ses-dynamodb"
+      Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/ses-dynamo"
       CodeUri: controllers/auth/create-user/
       Handler: main
       Runtime: go1.x
@@ -52,7 +52,7 @@ Resources:
     Properties:
       FunctionName: LogingChallengeFunction
       Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/ses-dynamo"
-      CodeUri: controllers/auth/loginchallenge/
+      CodeUri: controllers/auth/login-challenge/
       Handler: main
       Runtime: go1.x
       Architectures:
@@ -64,4 +64,22 @@ Resources:
           Properties:
             Path: /v1/login/challenge/{email}
             Method: GET
+            ApiId: !Ref PasswordCaddyApi
+  LoginVerificationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: LogingVerificationFunction
+      Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/dynamodb"
+      CodeUri: controllers/auth/login-verification/
+      Handler: main
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Tracing: Active
+      Events:
+        HttpApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /v1/login/verification/{email}
+            Method: POST
             ApiId: !Ref PasswordCaddyApi
