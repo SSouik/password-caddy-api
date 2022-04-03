@@ -2,7 +2,9 @@ package main
 
 import (
 	"password-caddy/api/core/container"
+	coreTypes "password-caddy/api/core/types"
 	"password-caddy/api/lib/dynamoclient"
+	"password-caddy/api/lib/logger"
 	"password-caddy/api/lib/result"
 	"password-caddy/api/lib/util"
 
@@ -39,11 +41,29 @@ func SendEmailChallenge(res result.ResultValue) *result.Result {
 		Send()
 
 	if !response.IsSuccess {
+		logger.Error(
+			"Failed to send login challenge email",
+			struct {
+				Email string
+				Error coreTypes.PasswordCaddyError
+			}{
+				Email: request.Email,
+				Error: response.Error,
+			},
+		)
+
 		return result.Failure(
 			response.Error.StatusCode,
 			response.Error.Message,
 		)
 	}
+
+	logger.Info(
+		"Successfully sent challenge email",
+		struct{ Email string }{
+			Email: request.Email,
+		},
+	)
 
 	return result.SuccessWithValue(202, request)
 }
@@ -66,11 +86,29 @@ func AddOTPToDynamo(res result.ResultValue) *result.Result {
 		Update(dynamoRequest)
 
 	if !response.IsSuccess {
+		logger.Error(
+			"Failed to save OTP to DynamoDB",
+			struct {
+				Email string
+				Error coreTypes.PasswordCaddyError
+			}{
+				Email: request.Email,
+				Error: response.Error,
+			},
+		)
+
 		return result.Failure(
 			response.Error.StatusCode,
 			response.Error.Message,
 		)
 	}
+
+	logger.Info(
+		"Saved OTP to DynamoDB",
+		struct{ Email string }{
+			Email: request.Email,
+		},
+	)
 
 	return result.Success(202)
 }
