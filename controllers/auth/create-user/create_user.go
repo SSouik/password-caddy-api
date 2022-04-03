@@ -4,6 +4,7 @@ import (
 	"password-caddy/api/core/container"
 	"password-caddy/api/core/types"
 	"password-caddy/api/lib/dynamoclient"
+	"password-caddy/api/lib/logger"
 	"password-caddy/api/lib/result"
 	"password-caddy/api/lib/util"
 
@@ -41,6 +42,17 @@ func CheckIfUserAlreadyExists(res result.ResultValue) *result.Result {
 		AsUser()
 
 	if !response.IsSuccess {
+		logger.Error(
+			"Failed to check if email already exists and is active",
+			struct {
+				Email string
+				Error types.PasswordCaddyError
+			}{
+				Email: request.Email,
+				Error: response.Error,
+			},
+		)
+
 		return result.Failure(
 			response.Error.StatusCode,
 			response.Error.Message,
@@ -52,8 +64,22 @@ func CheckIfUserAlreadyExists(res result.ResultValue) *result.Result {
 	// If the requested email is associated with an active user,
 	// fail and do not create another record
 	if user.Status.Value == "ACTIVE" {
+		logger.Warn(
+			"Failed to create user since email already exists and is active",
+			struct{ Email string }{
+				Email: user.UserId.Value,
+			},
+		)
+
 		return result.Failure(409, "Email is already active")
 	}
+
+	logger.Info(
+		"Requested email to create account is acceptable",
+		struct{ Email string }{
+			Email: user.UserId.Value,
+		},
+	)
 
 	return result.SuccessWithValue(202, request)
 }
@@ -74,11 +100,31 @@ func CreateUser(res result.ResultValue) *result.Result {
 		Put(dynamoRequest)
 
 	if !response.IsSuccess {
+		logger.Error(
+			"Failed to create a user",
+			struct {
+				Email string
+				Error types.PasswordCaddyError
+			}{
+				Email: request.Email,
+				Error: response.Error,
+			},
+		)
+
 		return result.Failure(
 			response.Error.StatusCode,
 			response.Error.Message,
 		)
 	}
+
+	logger.Info(
+		"Successfully created a new user",
+		struct {
+			Email string
+		}{
+			Email: request.Email,
+		},
+	)
 
 	return result.Success(201)
 }
