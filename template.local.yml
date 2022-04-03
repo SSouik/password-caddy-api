@@ -33,7 +33,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: CreateUserFunction
-      Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/dynamodb"
+      Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/ses-dynamodb"
       CodeUri: controllers/auth/create-user/
       Handler: main
       Runtime: go1.x
