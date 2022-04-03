@@ -85,7 +85,7 @@ Resources:
           Type: HttpApi
           Properties:
             Path: /v1/login/verification/{email}
-            Method: GET
+            Method: POST
             ApiId: !Ref PasswordCaddyApi
 
 Outputs:
