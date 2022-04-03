@@ -37,7 +37,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "password-caddy-api-${ENV}-v1-CreateUser"
-      Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/ses-dynamodb"
+      Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/ses-dynamo"
       CodeUri: controllers/auth/create-user/
       Handler: main
       Runtime: go1.x
@@ -56,7 +56,7 @@ Resources:
     Properties:
       FunctionName: !Sub "password-caddy-api-${ENV}-v1-LoginChallenge"
       Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/ses-dynamo"
-      CodeUri: controllers/auth/loginchallenge/
+      CodeUri: controllers/auth/login-challenge/
       Handler: main
       Runtime: go1.x
       Architectures:
@@ -67,6 +67,24 @@ Resources:
           Type: HttpApi
           Properties:
             Path: /v1/login/challenge/{email}
+            Method: GET
+            ApiId: !Ref PasswordCaddyApi
+  LoginVerificationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: LogingVerificationFunction
+      Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/dynamodb"
+      CodeUri: controllers/auth/login-verification/
+      Handler: main
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Tracing: Active
+      Events:
+        HttpApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /v1/login/verification/{email}
             Method: GET
             ApiId: !Ref PasswordCaddyApi
 
@@ -80,6 +98,9 @@ Outputs:
   LoginChallengeEndpoint:
     Description: "Endpoint for the Login Challenge Lambda"
     Value: !Sub "https://${PasswordCaddyApi}.execute-api.${AWS::Region}.amazonaws.com/v1/login/challenge/{email}"
+  LoginVerificationEndpoint:
+    Description: "Endpoint for the Login Verification Lambda"
+    Value: !Sub "https://${PasswordCaddyApi}.execute-api.${AWS::Region}.amazonaws.com/v1/login/verification/{email}"
   CreateUserEndpoint:
     Description: "Endpoint for the Create User Lambda"
     Value: !Sub "https://${PasswordCaddyApi}.execute-api.${AWS::Region}.amazonaws.com/v1/user"

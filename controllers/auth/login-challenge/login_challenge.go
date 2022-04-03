@@ -89,6 +89,7 @@ func GetEmailStatus(res result.ResultValue) *result.Result {
 	return result.SuccessWithValue(200, request)
 }
 
+// Update the user status in DynamoDB to ACTIVE
 func UpdateEmailStatusInDynamo(res result.ResultValue) *result.Result {
 	request := res.(LoginChallengeRequest)
 
@@ -138,6 +139,7 @@ func UpdateEmailStatusInDynamo(res result.ResultValue) *result.Result {
 }
 
 // Send the user an OTP via email
+// TODO - add a TTL to the verification code
 func SendEmailChallenge(res result.ResultValue) *result.Result {
 	request := res.(LoginChallengeRequest)
 
