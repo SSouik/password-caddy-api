@@ -33,6 +33,15 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       Description: "HTTP API for Password Caddy Applications"
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowMethods: 
+          - GET
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - "*"
   CreateUserFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -72,7 +81,7 @@ Resources:
   LoginVerificationFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: LogingVerificationFunction
+      FunctionName: !Sub "password-caddy-api-${ENV}-v1-LoginVerification"
       Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/dynamodb"
       CodeUri: controllers/auth/login-verification/
       Handler: main
