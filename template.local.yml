@@ -50,7 +50,7 @@ Resources:
   LoginChallengeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: LogingChallengeFunction
+      FunctionName: LoginChallengeFunction
       Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/ses-dynamo"
       CodeUri: controllers/auth/login-challenge/
       Handler: main
@@ -68,7 +68,7 @@ Resources:
   LoginVerificationFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: LogingVerificationFunction
+      FunctionName: LoginVerificationFunction
       Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/dynamodb"
       CodeUri: controllers/auth/login-verification/
       Handler: main
