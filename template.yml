@@ -29,10 +29,24 @@ Globals:
         DYNAMO_TABLE: !Ref DYNAMOTABLE
 
 Resources:
+  # CloudWatch
+  AccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "password-caddy-api-${ENV}-v1-gateway-access-logs"
+      RetentionInDays: 7
+  AccessLogStream:
+    Type: AWS::Logs::LogStream
+    Properties: 
+      LogGroupName: !Ref AccessLogGroup
+      LogStreamName: access-logs
+
+  # API
   PasswordCaddyApi:
     Type: AWS::Serverless::HttpApi
     Properties:
       Description: "HTTP API for Password Caddy Applications"
+      AccessLogSettings: !Ref AccessLogGroup
       CorsConfiguration:
         AllowOrigins:
           - "*"
@@ -42,6 +56,9 @@ Resources:
           - OPTIONS
         AllowHeaders:
           - "*"
+      StageName: !Ref ENV
+
+  # Lambdas
   CreateUserFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -98,6 +115,11 @@ Resources:
             ApiId: !Ref PasswordCaddyApi
 
 Outputs:
+  # CloudWatch
+  GatewayAccessLogGroup:
+    Description: CloudWatch group whcih contains access logs of the API
+    Value: !Ref AccessLogGroup
+
   # Api
   PasswordCaddyApi:
     Description: "HTTP API Gateway URL for Password Caddy Api"
