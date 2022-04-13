@@ -62,7 +62,7 @@ deploy: package
 		--s3-prefix v1 \
 		--no-fail-on-empty-changeset \
 		--role-arn arn:aws:iam::480277082058:role/password-caddy-cloudformation-execution-role \
-		--parameter-overrides 'ENV=dev ACCOUNTID=480277082058'
+		--parameter-overrides 'ENV=dev ACCOUNTID=480277082058 CERTIFICATEID=27f1d242-5f3d-4534-9a31-8f85af2c35b7'
 
 .PHONY: delete
 

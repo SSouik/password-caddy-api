@@ -136,7 +136,7 @@ jobs:
             --s3-prefix ${{ env.VERSION }} \
             --no-fail-on-empty-changeset \
             --role-arn ${{ env.CLOUDFORMATION_EXECUTION_ROLE }} \
-            --parameter-overrides 'ENV=dev ACCOUNTID=${{ secrets.AWS_ACCOUNT_ID }}'
+            --parameter-overrides 'ENV=dev ACCOUNTID=${{ secrets.AWS_ACCOUNT_ID }} CERTIFICATEID=27f1d242-5f3d-4534-9a31-8f85af2c35b7'
 
   # integration-test:
   #   if: github.ref == 'refs/heads/main'
