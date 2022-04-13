@@ -16,6 +16,10 @@ Parameters:
     Type: String
     Default: ""
     Description: AWS Account ID
+  CERTIFICATEID:
+    Type: String
+    Default: ""
+    Description: ID of AWS ACM Certificate to use
   DYNAMOTABLE:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /password-caddy-api/{API_ENV}/v1/DYNAMO_TABLE
@@ -29,24 +33,18 @@ Globals:
         DYNAMO_TABLE: !Ref DYNAMOTABLE
 
 Resources:
-  # CloudWatch
-  AccessLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "password-caddy-api-${ENV}-v1-gateway-access-logs"
-      RetentionInDays: 7
-  AccessLogStream:
-    Type: AWS::Logs::LogStream
-    Properties: 
-      LogGroupName: !Ref AccessLogGroup
-      LogStreamName: access-logs
-
   # API
   PasswordCaddyApi:
     Type: AWS::Serverless::HttpApi
     Properties:
       Description: "HTTP API for Password Caddy Applications"
-      AccessLogSettings: !Ref AccessLogGroup
+      Domain:
+        DomainName: api.dev.password-caddy.com
+        CertificateArn: !Sub "arn:aws:acm:us-east-2:${ACCOUNTID}:certificate/${CERTIFICATEID}"
+        EndpointConfiguration: REGIONAL
+        Route53:
+          HostedZoneId: Z03630512ITQ7YCU2BAK5 # password-caddy.com
+          EvaluateTargetHealth: true
       CorsConfiguration:
         AllowOrigins:
           - "*"
@@ -115,11 +113,6 @@ Resources:
             ApiId: !Ref PasswordCaddyApi
 
 Outputs:
-  # CloudWatch
-  GatewayAccessLogGroup:
-    Description: CloudWatch group whcih contains access logs of the API
-    Value: !Ref AccessLogGroup
-
   # Api
   PasswordCaddyApi:
     Description: "HTTP API Gateway URL for Password Caddy Api"
