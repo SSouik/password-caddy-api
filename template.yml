@@ -57,6 +57,27 @@ Resources:
       StageName: !Ref ENV
 
   # Lambdas
+  # Health
+  HealthCheckFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: HealthCheck
+      Role: !Sub "arn:aws:iam::${ACCOUNTID}:role/password-caddy/lambda/${ENV}/ses-dynamo"
+      CodeUri: controllers/health_check/
+      Handler: main
+      Runtime: go1.x
+      Architectures:
+        - x86_64
+      Tracing: Active
+      Events:
+        HttpApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /api/v1/health
+            Method: GET
+            ApiId: !Ref PasswordCaddyApi
+  
+  # User Endpoints
   CreateUserFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -72,9 +93,11 @@ Resources:
         HttpApiEvent:
           Type: HttpApi
           Properties:
-            Path: /v1/user
+            Path: /api/v1/user
             Method: POST
             ApiId: !Ref PasswordCaddyApi
+
+  # Login Endpoints
   LoginChallengeFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -90,9 +113,10 @@ Resources:
         HttpApiEvent:
           Type: HttpApi
           Properties:
-            Path: /v1/login/challenge/{email}
+            Path: /api/v1/login/challenge/{email}
             Method: GET
             ApiId: !Ref PasswordCaddyApi
+
   LoginVerificationFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -108,7 +132,7 @@ Resources:
         HttpApiEvent:
           Type: HttpApi
           Properties:
-            Path: /v1/login/verification/{email}
+            Path: /api/v1/login/verification/{email}
             Method: POST
             ApiId: !Ref PasswordCaddyApi
 
