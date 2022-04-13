@@ -20,6 +20,10 @@ Parameters:
     Type: String
     Default: ""
     Description: ID of AWS ACM Certificate to use
+  DOMAINNAME:
+    Type: String
+    Default: api.dev.password-caddy.com
+    Description: The domain name to attach to the API
   DYNAMOTABLE:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /password-caddy-api/{API_ENV}/v1/DYNAMO_TABLE
@@ -39,7 +43,7 @@ Resources:
     Properties:
       Description: "HTTP API for Password Caddy Applications"
       Domain:
-        DomainName: api.dev.password-caddy.com
+        DomainName: !Ref DOMAINNAME
         CertificateArn: !Sub "arn:aws:acm:us-east-2:${ACCOUNTID}:certificate/${CERTIFICATEID}"
         EndpointConfiguration: REGIONAL
         Route53:
